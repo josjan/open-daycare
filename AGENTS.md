@@ -34,4 +34,8 @@ Installed skills (`.agents/skills/`):
 - `spec` — design spec workflow (ask clarifying questions, build spec section by section)
 - `spec-impl` — implement approved spec (create branch, implement step by step, pause for diff review)
 
-Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs.  
+Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs. 
+
+## Reglas de código
+
+- Usar código limpio, nombres, funciones, variables, etc. en inglés 
