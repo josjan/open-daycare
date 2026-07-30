@@ -117,17 +117,17 @@ Cada paso deja el proyecto funcional (compila y corre).
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` inicia sin errores.
-- [ ] La página luce visualmente idéntica al template de referencia (tipografía, colores, espaciado, layout).
-- [ ] Sidebar visible a la izquierda en desktop (≥768px) con: logo, botón "Nueva publicación", 4 nav items (Feed activo), tarjeta de usuario al pie.
-- [ ] Sidebar se oculta en mobile (<768px) y se accede mediante menú hamburguesa.
-- [ ] Los 3 post variants (logro, actividad, anuncio) se renderizan con colores, badges, e iconos correctos.
-- [ ] El prompt "Compartí un momento…" se muestra con avatar y botón de foto.
-- [ ] "PUBLICADO HOY" con línea decorativa se muestra entre el prompt y los posts.
-- [ ] Encabezado muestra "GUARDERÍA · SALA SOLES", "Buenas, Caro", "12 niños · martes 17 jun".
-- [ ] Scrollbar estilizado según el template.
-- [ ] `npx tsc --noEmit` pasa sin errores.
-- [ ] `npm run lint` pasa sin errores.
+- [x] `npm run dev` inicia sin errores.
+- [x] La página luce visualmente idéntica al template de referencia (tipografía, colores, espaciado, layout).
+- [x] Sidebar visible a la izquierda en desktop (≥768px) con: logo, botón "Nueva publicación", 4 nav items (Feed activo), tarjeta de usuario al pie.
+- [x] Sidebar se oculta en mobile (<768px) y se accede mediante menú hamburguesa.
+- [x] Los 3 post variants (logro, actividad, anuncio) se renderizan con colores, badges, e iconos correctos.
+- [x] El prompt "Compartí un momento…" se muestra con avatar y botón de foto.
+- [x] "PUBLICADO HOY" con línea decorativa se muestra entre el prompt y los posts.
+- [x] Encabezado muestra "GUARDERÍA · SALA SOLES", "Buenas, Caro", "12 niños · martes 17 jun".
+- [x] Scrollbar estilizado según el template.
+- [x] `npx tsc --noEmit` pasa sin errores.
+- [x] `npm run lint` pasa sin errores.
 
 ---
 

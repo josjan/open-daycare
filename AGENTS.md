@@ -16,11 +16,14 @@ Run `lint -> typecheck -> build` for pre-PR verification.
 
 ## Structure
 
-- `src/app/layout.tsx` — root layout (Geist font via `next/font/local`)
+- `src/app/layout.tsx` — root layout (Fredoka + Nunito via `next/font/google`)
 - `src/app/page.tsx` — home page (single-page app, no routing yet)
-- `src/app/globals.css` — Tailwind directives + light/dark CSS vars
+- `src/app/globals.css` — Tailwind directives + CSS vars + styled scrollbar
+- `src/data/mock.ts` — mock data (user, room, posts)
+- `src/components/` — reusable components (Sidebar, Post, CreatePostPrompt)
 - `@/*` alias → `./src/*` (tsconfig.json)
 - `references/{pantallas,screenshots}/` — design mocks
+- `specs/` — feature specs (markdown)
 - `.playwright-mcp/` — Playwright screenshots
 
 ## Conventions
@@ -34,7 +37,9 @@ Installed skills (`.agents/skills/`):
 - `spec` — design spec workflow (ask clarifying questions, build spec section by section)
 - `spec-impl` — implement approved spec (create branch, implement step by step, pause for diff review)
 
-Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs. 
+Spec checking: use `@spec-checker @specs/<file>.md` to verify acceptance criteria against the current implementation. The spec-checker agent reads the spec, inspects the codebase, runs lint/typecheck, uses Playwright to validate visually, and updates the checkboxes in the spec file.
+
+Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs.
 
 ## Reglas de código
 
