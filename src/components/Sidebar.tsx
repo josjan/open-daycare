@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { currentUser, navItems, pageInfo, NavItemId } from "@/data/mock";
 
 function SunIcon() {
@@ -70,7 +71,7 @@ const NAV_HREFS: Record<NavItemId, string> = {
 function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
   return (
     <>
-      <a href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
+      <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
         <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-xl bg-gradient-to-br from-[#F8C3A8] to-[#F2937A]">
           <SunIcon />
         </div>
@@ -80,21 +81,18 @@ function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
           </div>
           <div className="mt-[2px] text-[11.5px] text-[#A89A8B]">{pageInfo.roomName}</div>
         </div>
-      </a>
+      </Link>
 
-      <a
-        href="#"
-        className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]"
-      >
+      <button className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]">
         <PlusIcon />
         Nueva publicación
-      </a>
+      </button>
 
       <nav className="flex flex-1 flex-col gap-1">
         {navItems.map((item) => {
           const active = item.id === activeNav;
           return (
-            <a
+            <Link
               key={item.id}
               href={NAV_HREFS[item.id]}
               className={`flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] ${
@@ -105,7 +103,7 @@ function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
             >
               <NavIcon icon={item.icon} />
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </nav>
@@ -121,13 +119,12 @@ function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
               {currentUser.role} · {currentUser.group}
             </div>
           </div>
-          <a
-            href="login.dc.html"
+          <button
             title="Cerrar sesión"
             className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-[#F6ECDF] text-[#94887B]"
           >
             <LogoutIcon />
-          </a>
+          </button>
         </div>
       </div>
     </>

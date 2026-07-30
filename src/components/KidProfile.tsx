@@ -192,7 +192,7 @@ export default function KidProfile({ kid }: KidProfileProps) {
                 <ParentRow key={parent.id} parent={parent} />
               ))}
               {/* Link another parent (placeholder) */}
-              <a
+              <Link
                 href="#"
                 className="flex items-center gap-3 pt-2"
               >
@@ -202,7 +202,7 @@ export default function KidProfile({ kid }: KidProfileProps) {
                 <span className="text-[14.5px] font-extrabold text-[#C5503A]">
                   Vincular otro padre
                 </span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
