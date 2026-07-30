@@ -76,6 +76,7 @@ export interface Kid {
   birthDate: string;
   enrolledSince: string;
   allergies?: string;
+  allergyLabel?: string;   // short badge label, e.g. "MANÍ"
   parents: Parent[];
 }
 
@@ -143,6 +144,7 @@ export const kids: Kid[] = [
     birthDate: "12 mar 2022",
     enrolledSince: "feb 2025",
     allergies: "Alergia al maní. Evitar frutos secos. Lleva inhalador en la mochila.",
+    allergyLabel: "MANÍ",
     parents: [
       {
         id: "lucia-fernandez",
@@ -235,6 +237,7 @@ export const kids: Kid[] = [
     birthDate: "8 feb 2022",
     enrolledSince: "feb 2025",
     allergies: "Intolerancia a la lactosa. No leche ni derivados.",
+    allergyLabel: "LACTOSA",
     parents: [
       {
         id: "paula-diaz",
