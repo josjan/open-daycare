@@ -16,27 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
-      pull-requests: write
-      issues: write
+      contents: read
+      pull-requests: read
+      issues: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          persist-credentials: true
-
-      - name: Configure git identity
-        run: |
-          git config --global user.name "opencode-bot"
-          git config --global user.email "opencode-bot@users.noreply.github.com"
-
-      - name: Install opencode
-        run: curl -fsSL https://opencode.ai/install | bash
+          persist-credentials: false
 
       - name: Run opencode
-        run: ~/.opencode/bin/opencode github run
+        uses: anomalyco/opencode/github@latest
         env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MODEL: deepseek/deepseek-v4-flash
-          USE_GITHUB_TOKEN: "true"
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          model: opencode/deepseek-v4-flash
