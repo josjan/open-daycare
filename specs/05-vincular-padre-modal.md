@@ -1,6 +1,6 @@
 # SPEC 05 — Modal "Vincular padre" desde el perfil del niño
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** 02-kids-pages, 04-modal-agregar-nino
 > **Fecha:** 2026-07-31
 > **Objetivo:** Implementar un modal que se abre desde "Vincular otro padre" en `/kids/[id]` — réplica de `vincular-padre.dc.html` — que genera un código de invitación, valida el email y, al enviar, agrega el padre como pendiente en memoria.

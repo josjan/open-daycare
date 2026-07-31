@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Kid, avatarPalette, kids } from "@/data/mock";
+import { slugify } from "@/lib/slugify";
 
 interface AddKidModalProps {
   rooms: string[];
@@ -45,16 +46,6 @@ function isValidDate(day: number, month: number, year: number): boolean {
   if (month < 1 || month > 12) return false;
   if (day < 1 || day > daysInMonth(month, year)) return false;
   return year >= 1900 && year <= 2100;
-}
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/[\s_-]+/g, "-");
 }
 
 function ChevronDownIcon() {
