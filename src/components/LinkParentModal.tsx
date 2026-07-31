@@ -122,7 +122,14 @@ export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentMo
       >
         {/* Header */}
         <div className="flex items-center justify-between px-[26px] py-5">
-          <div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[15px] font-bold text-[#94887B]"
+          >
+            Cancelar
+          </button>
+          <div className="text-center">
             <div className="font-fredoka text-[18px] font-semibold text-[#3F362E]">
               Vincular padre
             </div>
