@@ -80,6 +80,18 @@ export interface Kid {
   parents: Parent[];
 }
 
+// ── Rooms ──
+export const rooms: string[] = ["Soles", "Lunas", "Estrellas"];
+
+// ── Avatar palette (assigned in order to new kids) ──
+export const avatarPalette: { bg: string; text: string }[] = [
+  { bg: "#F4B8CC", text: "#C44A7A" },
+  { bg: "#A9D9E8", text: "#1F7A93" },
+  { bg: "#B9DEC4", text: "#3E8B62" },
+  { bg: "#C9B6E8", text: "#7B5FC0" },
+  { bg: "#F4DC8E", text: "#9A7B1E" },
+];
+
 export const currentUser: User = {
   name: "Caro Giménez",
   role: "Maestra",

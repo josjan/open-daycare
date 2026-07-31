@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import KidCard from "@/components/KidCard";
-import { kids, pageInfo } from "@/data/mock";
+import AddKidModal from "@/components/AddKidModal";
+import { Kid, kids, pageInfo, rooms } from "@/data/mock";
 
 function SearchIcon() {
   return (
@@ -38,6 +42,14 @@ function PlusIcon() {
 }
 
 export default function KidsPage() {
+  const [kidsList, setKidsList] = useState(kids);
+  const [isAddKidOpen, setIsAddKidOpen] = useState(false);
+
+  function handleSaveKid(kid: Kid) {
+    setKidsList((prev) => [...prev, kid]);
+    setIsAddKidOpen(false);
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F6ECDF]">
       <Sidebar activeNav="kids" />
@@ -55,7 +67,10 @@ export default function KidsPage() {
                 Niños
               </h1>
             </div>
-            <button className="flex items-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.7)]">
+            <button
+              onClick={() => setIsAddKidOpen(true)}
+              className="flex items-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-[18px] py-[11px] text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.7)]"
+            >
               <PlusIcon />
               Agregar niño
             </button>
@@ -76,19 +91,23 @@ export default function KidsPage() {
             <span className="text-[12.5px] font-extrabold tracking-[.8px] text-[#3F362E]">
               {pageInfo.roomName}
             </span>
-            <span className="text-[13px] text-[#A89A8B]">{kids.length} niños</span>
+            <span className="text-[13px] text-[#A89A8B]">{kidsList.length} niños</span>
             <span className="h-[1px] flex-1 bg-[#E7DAC8]" />
           </div>
 
           {/* Grid */}
           <div className="grid grid-cols-2 gap-[14px]">
-            {kids.map((kid) => (
+            {kidsList.map((kid) => (
               <KidCard key={kid.id} kid={kid} />
             ))}
           </div>
 
         </div>
       </main>
+
+      {isAddKidOpen && (
+        <AddKidModal rooms={rooms} onClose={() => setIsAddKidOpen(false)} onSave={handleSaveKid} />
+      )}
     </div>
   );
 }

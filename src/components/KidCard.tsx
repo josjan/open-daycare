@@ -54,13 +54,13 @@ export default function KidCard({ kid }: KidCardProps) {
       </div>
 
       {/* Badge or chevron */}
-      {kid.parents.length === 0 ? (
-        <span className="flex-none rounded-full bg-[#F9D2DE] px-[9px] py-[5px] text-[11px] font-extrabold text-[#C56486]">
-          VINCULAR
-        </span>
-      ) : kid.allergyLabel ? (
+      {kid.allergyLabel ? (
         <span className="flex-none rounded-full bg-[#FBD8CC] px-[9px] py-[5px] text-[11px] font-extrabold text-[#D9684A]">
           {kid.allergyLabel}
+        </span>
+      ) : kid.parents.length === 0 ? (
+        <span className="flex-none rounded-full bg-[#F9D2DE] px-[9px] py-[5px] text-[11px] font-extrabold text-[#C56486]">
+          VINCULAR
         </span>
       ) : (
         <ChevronRightIcon />
