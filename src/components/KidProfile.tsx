@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Kid, Parent } from "@/data/mock";
 
 interface KidProfileProps {
   kid: Kid;
+  onLinkParent: () => void;
 }
 
 function BackIcon() {
@@ -104,7 +107,7 @@ function ParentRow({ parent }: { parent: Parent }) {
   );
 }
 
-export default function KidProfile({ kid }: KidProfileProps) {
+export default function KidProfile({ kid, onLinkParent }: KidProfileProps) {
   return (
     <div className="mx-auto w-full max-w-[820px] px-10 pb-20 pt-[34px]">
       {/* Back link */}
@@ -191,9 +194,10 @@ export default function KidProfile({ kid }: KidProfileProps) {
               {kid.parents.map((parent) => (
                 <ParentRow key={parent.id} parent={parent} />
               ))}
-              {/* Link another parent (placeholder) */}
-              <Link
-                href="#"
+              {/* Link another parent */}
+              <button
+                type="button"
+                onClick={onLinkParent}
                 className="flex items-center gap-3 pt-2"
               >
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-dashed border-[#D8CBBA] text-[#B0A290]">
@@ -202,7 +206,7 @@ export default function KidProfile({ kid }: KidProfileProps) {
                 <span className="text-[14.5px] font-extrabold text-[#C5503A]">
                   Vincular otro padre
                 </span>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
