@@ -79,20 +79,20 @@ Convenciones: formato de mes en español abreviado consistente con los datos moc
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` inicia sin errores.
-- [ ] Click en "Agregar niño" en `/kids` abre el modal con backdrop sobre el grid.
-- [ ] El modal replica el template `agregar-nino.dc.html`: header Cancelar | Agregar niño | Guardar, y campos NOMBRE COMPLETO, FECHA DE NACIMIENTO (placeholder `dd/mm/aaaa`), SALA, ALERGIAS (ETIQUETAS) y NOTAS MÉDICAS.
-- [ ] El input de fecha solo acepta dígitos, inserta las `/` automáticamente y no supera 10 caracteres (formato `dd/mm/yyyy`).
-- [ ] Una fecha inválida (ej. `32/13/2020` o `29/02/2023`) muestra mensaje de error inline y Guardar queda deshabilitado.
-- [ ] Guardar queda deshabilitado hasta que nombre completo no vacío, fecha válida y sala elegida.
-- [ ] El selector de sala ofrece exactamente Soles, Lunas y Estrellas.
-- [ ] Guardar con solo los obligatorios cierra el modal y agrega una card al grid: avatar con inicial, nombre, edad calculada, badge VINCULAR (sin padres).
-- [ ] Guardar con alergias y notas médicas muestra el badge de alergia en la card.
-- [ ] El modal se cierra por Cancelar, click en el backdrop y tecla Escape sin agregar el niño; Guardar cierra y agrega.
-- [ ] Recargar la página restaura la lista original (el niño agregado se pierde).
-- [ ] `npx tsc --noEmit` pasa sin errores.
-- [ ] `npm run lint` pasa sin errores.
-- [ ] `npm run build` pasa sin errores.
+- [x] `npm run dev` inicia sin errores.
+- [x] Click en "Agregar niño" en `/kids` abre el modal con backdrop sobre el grid.
+- [x] El modal replica el template `agregar-nino.dc.html`: header Cancelar | Agregar niño | Guardar, y campos NOMBRE COMPLETO, FECHA DE NACIMIENTO (placeholder `dd/mm/aaaa`), SALA, ALERGIAS (ETIQUETAS) y NOTAS MÉDICAS.
+- [x] El input de fecha solo acepta dígitos, inserta las `/` automáticamente y no supera 10 caracteres (formato `dd/mm/yyyy`).
+- [x] Una fecha inválida (ej. `32/13/2020` o `29/02/2023`) muestra mensaje de error inline y Guardar queda deshabilitado.
+- [x] Guardar queda deshabilitado hasta que nombre completo no vacío, fecha válida y sala elegida.
+- [x] El selector de sala ofrece exactamente Soles, Lunas y Estrellas.
+- [x] Guardar con solo los obligatorios cierra el modal y agrega una card al grid: avatar con inicial, nombre, edad calculada, badge VINCULAR (sin padres).
+- [x] Guardar con alergias y notas médicas muestra el badge de alergia en la card.
+- [x] El modal se cierra por Cancelar, click en el backdrop y tecla Escape sin agregar el niño; Guardar cierra y agrega.
+- [x] Recargar la página restaura la lista original (el niño agregado se pierde).
+- [x] `npx tsc --noEmit` pasa sin errores.
+- [x] `npm run lint` pasa sin errores.
+- [x] `npm run build` pasa sin errores.
 
 ---
 
