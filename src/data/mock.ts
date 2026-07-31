@@ -83,6 +83,9 @@ export interface Kid {
 // ── Rooms ──
 export const rooms: string[] = ["Soles", "Lunas", "Estrellas"];
 
+// ── Parent roles for the link-parent modal ──
+export const parentRoles: string[] = ["Mamá", "Papá", "Tutor/a"];
+
 // ── Avatar palette (assigned in order to new kids) ──
 export const avatarPalette: { bg: string; text: string }[] = [
   { bg: "#F4B8CC", text: "#C44A7A" },
