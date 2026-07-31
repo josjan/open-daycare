@@ -30,11 +30,13 @@ jobs:
           git config --global user.name "opencode-bot"
           git config --global user.email "opencode-bot@users.noreply.github.com"
 
+      - name: Install opencode
+        run: curl -fsSL https://opencode.ai/install | bash
+
       - name: Run opencode
-        uses: anomalyco/opencode/github@latest
+        run: ~/.opencode/bin/opencode github run
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: deepseek/deepseek-v4-flash
-          use_github_token: "true"
+          MODEL: deepseek/deepseek-v4-flash
+          USE_GITHUB_TOKEN: "true"
