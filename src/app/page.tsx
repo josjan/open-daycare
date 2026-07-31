@@ -6,7 +6,7 @@ import { pageInfo, posts } from "@/data/mock";
 export default function Home() {
   return (
     <div className="flex min-h-screen bg-[#F6ECDF]">
-      <Sidebar />
+      <Sidebar activeNav="feed" />
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[760px] px-10 pb-20 pt-[34px]">
           <div className="mb-6">

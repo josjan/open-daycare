@@ -52,6 +52,34 @@ export interface PageInfo {
   date: string;
 }
 
+// ── Parent ──
+export type ParentStatus = "active" | "pending";
+
+export interface Parent {
+  id: string;
+  name: string;
+  initial: string;
+  avatarBg: string;
+  role: string;
+  status: ParentStatus;
+}
+
+// ── Kid ──
+export interface Kid {
+  id: string;
+  name: string;
+  initial: string;
+  avatarBg: string;
+  avatarText: string;
+  age: number;
+  room: string;
+  birthDate: string;
+  enrolledSince: string;
+  allergies?: string;
+  allergyLabel?: string;   // short badge label, e.g. "MANÍ"
+  parents: Parent[];
+}
+
 export const currentUser: User = {
   name: "Caro Giménez",
   role: "Maestra",
@@ -103,6 +131,188 @@ export const pageInfo: PageInfo = {
   childCount: 12,
   date: "martes 17 jun",
 };
+
+export const kids: Kid[] = [
+  {
+    id: "mateo-fernandez",
+    name: "Mateo Fernández",
+    initial: "M",
+    avatarBg: "#A9D9E8",
+    avatarText: "#1F7A93",
+    age: 3,
+    room: "Soles",
+    birthDate: "12 mar 2022",
+    enrolledSince: "feb 2025",
+    allergies: "Alergia al maní. Evitar frutos secos. Lleva inhalador en la mochila.",
+    allergyLabel: "MANÍ",
+    parents: [
+      {
+        id: "lucia-fernandez",
+        name: "Lucía Fernández",
+        initial: "L",
+        avatarBg: "#C9B6E8",
+        role: "Mamá",
+        status: "active",
+      },
+      {
+        id: "diego-fernandez",
+        name: "Diego Fernández",
+        initial: "D",
+        avatarBg: "#A9C7E8",
+        role: "Papá",
+        status: "pending",
+      },
+    ],
+  },
+  {
+    id: "sofia-mendez",
+    name: "Sofía Méndez",
+    initial: "S",
+    avatarBg: "#F4B8CC",
+    avatarText: "#C44A7A",
+    age: 2,
+    room: "Soles",
+    birthDate: "5 ago 2023",
+    enrolledSince: "mar 2025",
+    parents: [
+      {
+        id: "ana-mendez",
+        name: "Ana Méndez",
+        initial: "A",
+        avatarBg: "#F4B8CC",
+        role: "Mamá",
+        status: "active",
+      },
+    ],
+  },
+  {
+    id: "benjamin-ruiz",
+    name: "Benjamín Ruiz",
+    initial: "B",
+    avatarBg: "#B9DEC4",
+    avatarText: "#3E8B62",
+    age: 3,
+    room: "Soles",
+    birthDate: "20 ene 2022",
+    enrolledSince: "ene 2025",
+    parents: [
+      {
+        id: "maria-ruiz",
+        name: "María Ruiz",
+        initial: "M",
+        avatarBg: "#B9DEC4",
+        role: "Mamá",
+        status: "active",
+      },
+      {
+        id: "carlos-ruiz",
+        name: "Carlos Ruiz",
+        initial: "C",
+        avatarBg: "#A9C7E8",
+        role: "Papá",
+        status: "active",
+      },
+    ],
+  },
+  {
+    id: "valentina-soto",
+    name: "Valentina Soto",
+    initial: "V",
+    avatarBg: "#F4DC8E",
+    avatarText: "#9A7B1E",
+    age: 2,
+    room: "Soles",
+    birthDate: "14 nov 2023",
+    enrolledSince: "abr 2025",
+    parents: [],
+  },
+  {
+    id: "tomas-diaz",
+    name: "Tomás Díaz",
+    initial: "T",
+    avatarBg: "#C9B6E8",
+    avatarText: "#7B5FC0",
+    age: 3,
+    room: "Soles",
+    birthDate: "8 feb 2022",
+    enrolledSince: "feb 2025",
+    allergies: "Intolerancia a la lactosa. No leche ni derivados.",
+    allergyLabel: "LACTOSA",
+    parents: [
+      {
+        id: "paula-diaz",
+        name: "Paula Díaz",
+        initial: "P",
+        avatarBg: "#C9B6E8",
+        role: "Mamá",
+        status: "active",
+      },
+    ],
+  },
+  {
+    id: "emma-castro",
+    name: "Emma Castro",
+    initial: "E",
+    avatarBg: "#F4B8CC",
+    avatarText: "#C44A7A",
+    age: 2,
+    room: "Soles",
+    birthDate: "30 abr 2023",
+    enrolledSince: "may 2025",
+    parents: [
+      {
+        id: "laura-castro",
+        name: "Laura Castro",
+        initial: "L",
+        avatarBg: "#F4B8CC",
+        role: "Mamá",
+        status: "active",
+      },
+    ],
+  },
+  {
+    id: "lucas-romero",
+    name: "Lucas Romero",
+    initial: "L",
+    avatarBg: "#A9D9E8",
+    avatarText: "#1F7A93",
+    age: 3,
+    room: "Soles",
+    birthDate: "17 jun 2022",
+    enrolledSince: "mar 2025",
+    parents: [
+      {
+        id: "roberto-romero",
+        name: "Roberto Romero",
+        initial: "R",
+        avatarBg: "#A9D9E8",
+        role: "Papá",
+        status: "active",
+      },
+    ],
+  },
+  {
+    id: "olivia-vega",
+    name: "Olivia Vega",
+    initial: "O",
+    avatarBg: "#B9DEC4",
+    avatarText: "#3E8B62",
+    age: 2,
+    room: "Soles",
+    birthDate: "22 sep 2023",
+    enrolledSince: "jun 2025",
+    parents: [
+      {
+        id: "claudia-vega",
+        name: "Claudia Vega",
+        initial: "C",
+        avatarBg: "#B9DEC4",
+        role: "Mamá",
+        status: "active",
+      },
+    ],
+  },
+];
 
 export const posts: Post[] = [
   {

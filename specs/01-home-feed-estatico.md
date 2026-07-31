@@ -1,6 +1,6 @@
 # SPEC 01 — Home feed estático con diseño de referencia
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** Ninguna
 > **Fecha:** 2026-07-30
 > **Objetivo:** Reemplazar `src/app/page.tsx` por una réplica visual exacta de `references/pantallas/feed.dc.html`, con layout responsive (sidebar fija en desktop, menú hamburguesa en mobile), componentes descompuestos, datos mock en `src/data/mock.ts`, y estilos convertidos a Tailwind utility classes.
