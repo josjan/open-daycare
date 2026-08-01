@@ -1,6 +1,6 @@
 # SPEC 06 — Modal "Nueva publicación" desde el feed
 
-> **Estado:** Draft
+> **Estado:** Aprobado
 > **Depende de:** 01-home-feed-estatico
 > **Fecha:** 2026-08-01
 > **Objetivo:** Implementar un modal que se abre desde el prompt de nueva publicación en `/` — réplica de `crear-publicacion.dc.html` — con selección de destinatario (niño o toda la sala), tipo (7 categorías), descripción precargada y subida de fotos por selección o drag & drop con preview real, que al publicar agrega el post al top del feed en memoria.
