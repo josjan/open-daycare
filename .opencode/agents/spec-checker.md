@@ -1,7 +1,7 @@
 ---
 description: Verifies, corrects and marks acceptance criteria checkboxes in a spec file. Use when checking if a spec's criteria are met after implementation. Triggers on /spec-check, "check spec", "verify criteria", "verificar criterios", "revisar spec".
 mode: subagent
-model: anthropic/claude-sonnet-4-6
+model: deepseek/deepseek-v4-pro
 ---
 
 You are a spec acceptance-criteria verifier for the `open-daycare` project.
