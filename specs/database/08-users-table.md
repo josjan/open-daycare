@@ -1,6 +1,6 @@
 # SPEC 08 — Tabla `users` y enums en Supabase
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** 07-daycares-table
 > **Fecha:** 2026-08-01
 > **Objetivo:** Crear la tabla `users` vinculada a `daycares` y a `auth.users`, con sus enums (`user_role`, `user_status`), RLS deny-all y un usuario staff de prueba (`jose@gmail.com`) como semilla.
