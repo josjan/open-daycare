@@ -1,6 +1,6 @@
 # SPEC 10 — Tablas `rooms` y `children` y mantenimiento de niños en `/kids`
 
-> **Estado:** Borrador
+> **Estado:** Aprobado
 > **Depende de:** 07-daycares-table, 08-users-table, 09-auth
 > **Fecha:** 2026-08-01
 > **Objetivo:** Crear las tablas `rooms` y `children` en Supabase con 3 salas por defecto (Soles, Lunas, Estrellas) y sin niños de semilla, y conectar la pantalla `/kids` a la base de datos real: grid agrupado por sala con estado vacío y "Agregar niño" que persiste en `children`.
