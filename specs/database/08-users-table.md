@@ -1,6 +1,6 @@
 # SPEC 08 — Tabla `users` y enums en Supabase
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** 07-daycares-table
 > **Fecha:** 2026-08-01
 > **Objetivo:** Crear la tabla `users` vinculada a `daycares` y a `auth.users`, con sus enums (`user_role`, `user_status`), RLS deny-all y un usuario staff de prueba (`jose@gmail.com`) como semilla.
@@ -110,14 +110,14 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] `list_migrations` incluye una migración `create_users_table` aplicada al proyecto.
-- [ ] `list_tables` muestra `public.users` con exactamente las columnas: `id` (uuid PK, FK → `auth.users` ON DELETE CASCADE), `daycare_id` (uuid, FK → `daycares`, not null), `role` (`user_role`), `status` (`user_status`, default `active`), `full_name` (text, not null), `avatar_url` (text, nullable), `notify_on_post` (boolean, default `true`), `daily_summary_enabled` (boolean, default `true`), `created_at` / `updated_at` (timestamptz).
-- [ ] Los enums `public.user_role` (`staff`, `parent`, `admin`) y `public.user_status` (`pending`, `active`) existen con exactamente esos valores.
-- [ ] `public.users` tiene RLS habilitado (`relrowsecurity = true`) y 0 policies.
-- [ ] `SELECT u.full_name, u.role, u.status, d.name FROM public.users u JOIN public.daycares d ON d.id = u.daycare_id` devuelve exactamente 1 fila: `José` / `staff` / `active` / `Guardería Sala Soles`.
-- [ ] Existe el auth user `jose@gmail.com` en `auth.users` con email confirmado y su password configurada.
-- [ ] `get_advisors` (security y performance) no reporta issues nuevos introducidos por esta migración.
-- [ ] `supabase/migrations/<version>_create_users_table.sql` existe en el repo y su contenido coincide con la migración remota `create_users_table`.
+- [x] `list_migrations` incluye una migración `create_users_table` aplicada al proyecto.
+- [x] `list_tables` muestra `public.users` con exactamente las columnas: `id` (uuid PK, FK → `auth.users` ON DELETE CASCADE), `daycare_id` (uuid, FK → `daycares`, not null), `role` (`user_role`), `status` (`user_status`, default `active`), `full_name` (text, not null), `avatar_url` (text, nullable), `notify_on_post` (boolean, default `true`), `daily_summary_enabled` (boolean, default `true`), `created_at` / `updated_at` (timestamptz).
+- [x] Los enums `public.user_role` (`staff`, `parent`, `admin`) y `public.user_status` (`pending`, `active`) existen con exactamente esos valores.
+- [x] `public.users` tiene RLS habilitado (`relrowsecurity = true`) y 0 policies.
+- [x] `SELECT u.full_name, u.role, u.status, d.name FROM public.users u JOIN public.daycares d ON d.id = u.daycare_id` devuelve exactamente 1 fila: `José` / `staff` / `active` / `Guardería Sala Soles`.
+- [x] Existe el auth user `jose@gmail.com` en `auth.users` con email confirmado y su password configurada.
+- [x] `get_advisors` (security y performance) no reporta issues nuevos introducidos por esta migración.
+- [x] `supabase/migrations/<version>_create_users_table.sql` existe en el repo y su contenido coincide con la migración remota `create_users_table`.
 
 ---
 
@@ -129,6 +129,7 @@ Convenciones:
 - **Sí:** Un único seed staff: `full_name` "José", `role` `staff`, `status` `active`, vinculado a "Guardería Sala Soles", credenciales `jose@gmail.com` / `Abc123456@`. Decisión del usuario (pregunta 4). Email y password viven en `auth.users`, no en `public.users`.
 - **Sí:** Enums con los valores exactos del doc (`user_role` incluye `admin` aunque no se use aún).
 - **Sí:** `updated_at` en `users`. Está en el doc (§2), a diferencia de `daycares`.
+- **Sí:** Índice en `users.daycare_id` (`users_daycare_id_idx`). El advisor de performance reportó la FK sin índice (`unindexed_foreign_keys`); se resolvió con una migración adicional `create_users_daycare_id_index` (versión `20260801164201`). Decisión del usuario durante la implementación.
 - **No:** Trigger `AFTER INSERT` en `auth.users`. Lo recomienda el doc, pero sin flujo de signup real el seed manual vía SQL es suficiente por ahora.
 - **No:** Policies de RLS. Sin auth implementado aún no hay nada que expresar.
 - **No:** Grants/exposición a la Data API para `anon`/`authenticated`.
