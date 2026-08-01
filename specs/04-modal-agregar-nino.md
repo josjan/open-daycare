@@ -1,6 +1,6 @@
 # SPEC 04 — Modal "Agregar niño" desde la lista de niños
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** 02-kids-pages
 > **Fecha:** 2026-07-31
 > **Objetivo:** Implementar un modal que se abre desde el botón "Agregar niño" de `/kids`, con nombre completo, fecha de nacimiento (máscara dd/mm/yyyy con validación), sala (Soles/Lunas/Estrellas), alergias y notas médicas, que al guardar agrega el niño a la lista en memoria.
