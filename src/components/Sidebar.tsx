@@ -68,7 +68,13 @@ const NAV_HREFS: Record<NavItemId, string> = {
   account: "#",
 };
 
-function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
+function SidebarContent({
+  activeNav,
+  onCreatePost,
+}: {
+  activeNav: NavItemId;
+  onCreatePost?: () => void;
+}) {
   return (
     <>
       <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
@@ -83,7 +89,10 @@ function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
         </div>
       </Link>
 
-      <button className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]">
+      <button
+        onClick={onCreatePost}
+        className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]"
+      >
         <PlusIcon />
         Nueva publicación
       </button>
@@ -133,9 +142,10 @@ function SidebarContent({ activeNav }: { activeNav: NavItemId }) {
 
 interface SidebarProps {
   activeNav: NavItemId;
+  onCreatePost?: () => void;
 }
 
-export default function Sidebar({ activeNav }: SidebarProps) {
+export default function Sidebar({ activeNav, onCreatePost }: SidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -167,7 +177,7 @@ export default function Sidebar({ activeNav }: SidebarProps) {
         >
           <CloseIcon />
         </button>
-        <SidebarContent activeNav={activeNav} />
+        <SidebarContent activeNav={activeNav} onCreatePost={onCreatePost} />
       </aside>
     </>
   );
