@@ -12,6 +12,7 @@
 **In:**
 
 - Migración versionada en el historial de Supabase vía MCP `apply_migration` (patrón ya probado con `create_test_table` / `drop_test_table`).
+- Copia local de la migración en `supabase/migrations/<version>_create_daycares_table.sql` (mismo SQL y mismo `version` que la migración remota), para que el repo también tenga el historial de migraciones.
 - Tabla `public.daycares` con las columnas del doc `docs` (más `address` agregada por este spec): `id` (uuid PK, default `gen_random_uuid()`), `name` (text, not null), `address` (text, nullable), `created_at` (timestamptz, default `now()`). Sin `updated_at`.
 - Actualización de `docs/opendaycare-database-schema.md` (§1 `daycares`) agregando la columna `address`, para que el doc siga siendo la fuente de verdad.
 - RLS habilitado sobre `daycares`, sin policies (deny-all) hasta que exista el spec de auth.
@@ -24,7 +25,7 @@
 - Policies de RLS y cualquier apertura de acceso (auth/roles) — spec de auth (03).
 - Exposición a la Data API / grants a `anon` y `authenticated` — no hay cliente que consuma la tabla todavía.
 - Integración del frontend (Next.js) con Supabase.
-- Proyecto local `supabase/` en el repo; la migración vive solo en el historial remoto.
+- Configuración completa de un proyecto local de Supabase (`config.toml`, stack local); solo se versiona el archivo de migración.
 
 ---
 
@@ -67,6 +68,7 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
    debe devolver exactamente las 4 guarderías con sus direcciones, incluyendo "Guardería Sala Soles".
 4. **Verificar RLS** — `execute_sql` sobre `pg_class`/`pg_policies` confirma `relrowsecurity = true` y 0 policies en `daycares`.
 5. **Advisors** — `get_advisors` (security y performance) para confirmar que no hay issues nuevos introducidos por el DDL.
+6. **Migración a nivel local** — crear `supabase/migrations/20260801155229_create_daycares_table.sql` con el mismo SQL aplicado al remoto (tabla, RLS y seed). Verificar: el archivo existe y su contenido coincide con la migración remota.
 
 ---
 
@@ -80,6 +82,7 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
 - [ ] `daycares` tiene RLS habilitado (`relrowsecurity = true`).
 - [ ] `daycares` no tiene policies (deny-all para `anon`/`authenticated`).
 - [ ] `get_advisors` (security y performance) no reporta issues nuevos introducidos por esta migración.
+- [ ] `supabase/migrations/20260801155229_create_daycares_table.sql` existe en el repo y su contenido coincide con la migración remota `create_daycares_table`.
 
 ---
 
@@ -90,6 +93,7 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
 - **Sí:** Habilitar RLS ahora, sin policies (deny-all). Recomendación del skill de Supabase (toda tabla en schema expuesto lleva RLS); las policies se abren en el spec de auth (03).
 - **Sí:** Seed de 4 guarderías con "Guardería Sala Soles" como la importante. Decisión del usuario (pregunta 3); coincide con el nombre que ya usa el frontend (mock, login, layout).
 - **Sí:** Migración aplicada con MCP `apply_migration` directo al remoto. Decisión del usuario (pregunta 4); patrón ya probado con `create_test_table`/`drop_test_table`, sin proyecto local.
+- **Sí:** Copia local de la migración en `supabase/migrations/20260801155229_create_daycares_table.sql`. Pedido explícito del usuario durante la implementación; el repo versiona el historial de migraciones aunque el proyecto remoto siga siendo la fuente aplicada.
 - **Sí:** IDs de seed con `gen_random_uuid()`; referencias futuras por `WHERE name = ...`. Regla del skill: no hardcodear IDs generados en migraciones de datos.
 - **No:** `updated_at` en `daycares`. No está en el doc; si el modelo lo requiere más adelante, se agrega con su propia migración.
 - **No:** Policies de RLS en esta migración. Sin tablas de auth/usuarios aún no hay nada que expresar.
@@ -105,6 +109,7 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
 | RLS habilitado sin policies deja la tabla inaccesible para `anon`/`authenticated`. | Comportamiento esperado hasta el spec de auth; `service_role` sigue con acceso. Documentado en los criterios. |
 | Referencias futuras a "Guardería Sala Soles" por nombre podrían fallar si cambia el texto. | El nombre está anclado al frontend actual; cualquier renombrado debe tocarse en todas las capas. |
 | Re-ejecutar el INSERT duplicaría guarderías. | `apply_migration` es versionado: se ejecuta una sola vez por migración. |
+| La copia local puede desincronizarse del historial remoto. | La copia usa el mismo `version` y el mismo SQL; cualquier cambio en el remoto debe reflejarse en el archivo local (o viceversa) y revisarse en cada migración. |
 
 ---
 
@@ -115,6 +120,6 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
 - Exposición de `daycares` a la Data API (grants).
 - Integración del frontend con Supabase.
 - `updated_at` en `daycares`.
-- Proyecto local `supabase/` en el repo.
+- Configuración completa de un proyecto local de Supabase (solo se versiona el archivo de migración).
 
 Cada uno de esos, si llega, va en su propio spec.
