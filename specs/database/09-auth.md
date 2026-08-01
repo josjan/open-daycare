@@ -1,6 +1,6 @@
 # SPEC 09 — Autenticación email+password y protección de rutas
 
-> **Estado:** Borrador
+> **Estado:** Implementado
 > **Depende de:** 03-auth-screens, 08-users-table
 > **Fecha:** 2026-08-01
 > **Objetivo:** Implementar el login real con email y contraseña contra Supabase Auth, proteger todas las rutas de la app excepto `/login` y `/activate` mediante middleware, y cerrar sesión mostrando el perfil real del usuario en la Sidebar.
@@ -106,29 +106,33 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] `jose@gmail.com` / `Abc123456@` inicia sesión contra Supabase Auth real (token endpoint devuelve `access_token`).
-- [ ] `auth.identities` tiene la fila email para `jose@gmail.com`.
-- [ ] `public.users` tiene la policy `users_select_own` (SELECT, `TO authenticated`, `auth.uid() = id`).
-- [ ] `GET /rest/v1/users` con el access_token de Jose devuelve solo su fila; con key `anon` devuelve 0 filas (RLS).
-- [ ] `supabase/migrations/<version>_fix_seed_auth_user_login.sql` y `<version>_add_users_rls_select_own_row.sql` existen y coinciden con el remoto.
-- [ ] Sin sesión, `GET /` y `GET /kids` redirigen a `/login`.
-- [ ] Con sesión, `GET /login` redirige a `/`.
-- [ ] Credenciales inválidas en `/login` muestran error inline y no navegan.
-- [ ] Credenciales válidas en `/login` inician sesión y redirigen a `/`.
-- [ ] La Sidebar muestra el nombre real de Jose y su rol (no "Caro Giménez").
-- [ ] El botón "Cerrar sesión" cierra la sesión y redirige a `/login`; luego `/` vuelve a redirigir a `/login`.
-- [ ] `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan sin errores.
-- [ ] `get_advisors` (security y performance) no reporta issues nuevos.
+- [x] `jose@gmail.com` / `Abc123456@` inicia sesión contra Supabase Auth real (token endpoint devuelve `access_token`).
+- [x] `auth.identities` tiene la fila email para `jose@gmail.com`.
+- [x] `public.users` tiene la policy `users_select_own` (SELECT, `TO authenticated`, `auth.uid() = id`).
+- [x] `GET /rest/v1/users` con el access_token de Jose devuelve solo su fila; con key `anon` devuelve 0 filas (RLS).
+- [x] `supabase/migrations/20260801174100_fix_seed_auth_user_login.sql` y `20260801174105_add_users_rls_select_own_row.sql` existen y coinciden con el remoto.
+- [x] Sin sesión, `GET /` y `GET /kids` redirigen a `/login`.
+- [x] Con sesión, `GET /login` redirige a `/`.
+- [x] Credenciales inválidas en `/login` muestran error inline y no navegan.
+- [x] Credenciales válidas en `/login` inician sesión y redirigen a `/`.
+- [x] La Sidebar muestra el nombre real de Jose y su rol (no "Caro Giménez").
+- [x] El botón "Cerrar sesión" cierra la sesión y redirige a `/login`; luego `/` vuelve a redirigir a `/login`.
+- [x] `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan sin errores.
+- [x] `get_advisors` (security y performance) no reporta issues nuevos.
 
 ---
 
 ## Decisions
 
-- **Sí:** Middleware con `auth.getUser()` para la protección. Valida contra el servidor de auth (no confía en el cookie); es el patrón recomendado por Supabase/Context7.
+- **Sí:** Middleware con `auth.getUser()` para la protección. Es el patrón oficial de `@supabase/ssr` (crear el client en middleware, `await getUser()`, redirigir a `/login` si no hay user). `getUser()` valida el token contra el servidor de auth (los cookies de servidor son untrusted); no se usa `getSession()` para autorización.
+- **Sí:** Defense in depth diferido a un spec futuro de rol/feed. `@supabase/ssr` recomienda además chequear `getUser()` en el layout server, porque el middleware no siempre se ejecuta (streaming, respuestas ya iniciadas). Las páginas actuales son client components y no exponen datos sensibles reales (todo mock), por eso en este spec basta el middleware; el gate server se agrega cuando se consuma DB en server.
 - **Sí:** Proteger todo excepto `/login` y `/activate`. Decisión del usuario.
 - **Sí:** Logout en la Sidebar (el botón ya existía como placeholder). Decisión del usuario.
 - **Sí:** Perfil real desde `public.users` abriendo RLS (SELECT propia fila). Decisión del usuario; fuente de verdad y desbloquea specs futuros.
 - **Sí:** Reparar el seed en lugar de recrearlo. Los token columns NULL rompen el scan de GoTrue (`converting NULL to string is unsupported`, verificado en logs).
+- **Sí:** `GRANT SELECT ... TO authenticated` en la migración RLS. Resultó redundante en la práctica (la Data API ya auto-expone `users` con grants completos a `anon`/`authenticated`); el RLS es lo que controla las filas. Se mantiene por claridad y defensa en profundidad.
+- **Sí:** Versiones de migración `20260801174100` (`fix_seed_auth_user_login`) y `20260801174105` (`add_users_rls_select_own_row`), según el historial remoto.
+- **Sí:** Mantener `src/middleware.ts`. El rename `middleware.ts` → `proxy.ts` es de Next.js 16 (en 15 el nombre del archivo y del export cambian y Next 15.0.2 solo reconoce `middleware`; renombrar rompería la protección en silencio). Se migra a `proxy.ts` cuando el proyecto suba a Next 16, usando `npx @next/codemod@latest middleware-to-proxy .`.
 - **No:** Flujo `/activate` por código de invitación. Requiere tablas que no existen; spec propio.
 - **No:** Recuperación de contraseña.
 - **No:** Redirección por rol. Solo hay un feed y un usuario staff.
@@ -144,6 +148,7 @@ Convenciones:
 | El `UPDATE` a `auth.users` no cubra todos los tokens que GoTrue escanea y el login siga fallando. | Verificación con token endpoint tras la migración; si falla, recrear el usuario con Admin API (`service_role`, `createUser`) y re-vincular `public.users.id`. |
 | `public.users` no expuesta a la Data API (falta grant). | La migración incluye `GRANT SELECT ... TO authenticated`; si la config de Data API la bloquea, ajustar ahí. |
 | El fetch del perfil es client-side → posible flash del mock al cargar. | Aceptado; el layout server que elimina el flash vendrá en un spec futuro de rol/feed. |
+| Middleware no siempre se ejecuta (streaming, respuestas ya iniciadas) → una ruta sin sesión podría renderizar parcialmente. | Aceptado por ahora: las páginas usan mock y no exponen datos reales. Cuando se consuma DB en server, agregar gate con `getUser()` en el layout (defense in depth de `@supabase/ssr`). |
 | Policy con `auth.uid() = id` usa el `sub` del JWT (no editable por el usuario). | Bajo control; sin decisiones de autorización basadas en `user_metadata`. |
 
 ---
