@@ -51,6 +51,7 @@ Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available glo
 - Always load the `supabase` skill before Supabase tasks and `supabase-postgres-best-practices` before DDL/schema work
 - Prefer local Supabase CLI for dev workflows; apply changes to remote only when intended
 - Run `get_advisors` after DDL changes to catch missing RLS policies and security issues
+- Para interactuar con la base de datos desde la app usamos los paquetes oficiales de Supabase para Next.js (`@supabase/ssr` con `@supabase/supabase-js`). Clientes listos en `src/utils/supabase/`: `server.ts` (Server Components), `client.ts` (Browser Components) y `middleware.ts` (refresh de sesión vía `src/middleware.ts`). Usar `createServerClient` en el servidor y `createBrowserClient` en el cliente; no crear clientes manuales con `createClient(supabaseUrl, key)`.
 
 ### Migraciones (obligatorio)
 
