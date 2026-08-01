@@ -75,15 +75,27 @@ export default function Post({ post }: { post: PostData }) {
 
       <p className="m-0 text-[15.5px] leading-relaxed text-[#4A4038]">{post.content}</p>
 
-      {post.image && (
-        <a
-          href="foto.dc.html"
-          className="mt-[14px] flex h-[200px] flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290]"
-        >
-          <PhotoIcon />
-          <span className="text-sm">{post.image.label}</span>
-        </a>
-      )}
+      {post.image &&
+        (post.image.src ? (
+          <a
+            href="foto.dc.html"
+            className="mt-[14px] block h-[200px] overflow-hidden rounded-2xl"
+          >
+            <img
+              src={post.image.src}
+              alt={post.image.label}
+              className="h-full w-full object-cover"
+            />
+          </a>
+        ) : (
+          <a
+            href="foto.dc.html"
+            className="mt-[14px] flex h-[200px] flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290]"
+          >
+            <PhotoIcon />
+            <span className="text-sm">{post.image.label}</span>
+          </a>
+        ))}
 
       <div className="mt-4 flex items-center gap-[18px] border-t border-[#F0E6D8] pt-[14px]">
         <span className="flex items-center gap-[7px] text-sm font-bold text-[#E0654A]">

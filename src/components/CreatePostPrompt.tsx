@@ -9,11 +9,11 @@ function CameraIcon() {
   );
 }
 
-export default function CreatePostPrompt() {
+export default function CreatePostPrompt({ onOpen }: { onOpen: () => void }) {
   return (
-    <a
-      href="crear-publicacion.dc.html"
-      className="mb-6 flex items-center gap-3.5 rounded-2xl border border-[#ECE0D0] bg-[#FFFDF9] px-[18px] py-3.5 shadow-[0_4px_14px_-10px_rgba(120,90,60,.4)]"
+    <button
+      onClick={onOpen}
+      className="mb-6 flex w-full items-center gap-3.5 rounded-2xl border border-[#ECE0D0] bg-[#FFFDF9] px-[18px] py-3.5 text-left shadow-[0_4px_14px_-10px_rgba(120,90,60,.4)]"
     >
       <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#F2937A] font-fredoka font-semibold text-white" style={{ fontSize: 16 }}>
         {currentUser.initial}
@@ -22,6 +22,6 @@ export default function CreatePostPrompt() {
       <span className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-[#FBE3D8] text-[#E0654A]">
         <CameraIcon />
       </span>
-    </a>
+    </button>
   );
 }

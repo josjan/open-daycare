@@ -14,7 +14,14 @@ export interface NavItem {
   current?: boolean;
 }
 
-export type PostCategory = "achievement" | "activity" | "announcement";
+export type PostCategory =
+  | "food"
+  | "nap"
+  | "activity"
+  | "achievement"
+  | "mood"
+  | "photo"
+  | "announcement";
 
 export interface PostCategoryStyle {
   badgeBg: string;
@@ -28,6 +35,7 @@ export interface PostCategoryStyle {
 
 export interface PostImage {
   label: string;
+  src?: string;
 }
 
 export interface Post {
@@ -110,6 +118,33 @@ export const navItems: NavItem[] = [
 ];
 
 export const categoryStyles: Record<PostCategory, PostCategoryStyle> = {
+  food: {
+    badgeBg: "#9A7B1E",
+    badgeDot: "#fff",
+    badgeLabel: "COMIDA",
+    badgeText: "#fff",
+    avatarBg: "#F4E7C6",
+    avatarText: "#9A7B1E",
+    icon: "heart",
+  },
+  nap: {
+    badgeBg: "#E7DCF6",
+    badgeDot: "#7B5FC0",
+    badgeLabel: "SIESTA",
+    badgeText: "#7B5FC0",
+    avatarBg: "#E7DCF6",
+    avatarText: "#7B5FC0",
+    icon: "heart",
+  },
+  activity: {
+    badgeBg: "#2E89A6",
+    badgeDot: "#fff",
+    badgeLabel: "ACTIVIDAD",
+    badgeText: "#fff",
+    avatarBg: "#C7E7F1",
+    avatarText: "#2E89A6",
+    icon: "heart",
+  },
   achievement: {
     badgeBg: "#CFEBD8",
     badgeDot: "#3E9B6C",
@@ -119,13 +154,22 @@ export const categoryStyles: Record<PostCategory, PostCategoryStyle> = {
     avatarText: "#1F7A93",
     icon: "heart",
   },
-  activity: {
-    badgeBg: "#C7E7F1",
-    badgeDot: "#2E89A6",
-    badgeLabel: "ACTIVIDAD",
-    badgeText: "#2E89A6",
-    avatarBg: "#A9D9E8",
-    avatarText: "#1F7A93",
+  mood: {
+    badgeBg: "#F9D2DE",
+    badgeDot: "#C56486",
+    badgeLabel: "ÁNIMO",
+    badgeText: "#C56486",
+    avatarBg: "#F9D2DE",
+    avatarText: "#C56486",
+    icon: "heart",
+  },
+  photo: {
+    badgeBg: "#FBD8CC",
+    badgeDot: "#D9684A",
+    badgeLabel: "FOTO",
+    badgeText: "#D9684A",
+    avatarBg: "#FBD8CC",
+    avatarText: "#D9684A",
     icon: "heart",
   },
   announcement: {

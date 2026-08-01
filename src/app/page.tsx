@@ -1,9 +1,21 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import CreatePostPrompt from "@/components/CreatePostPrompt";
+import CreatePostModal from "@/components/CreatePostModal";
 import Post from "@/components/Post";
-import { pageInfo, posts } from "@/data/mock";
+import { type Post as PostData, kids, pageInfo, posts } from "@/data/mock";
 
 export default function Home() {
+  const [feedPosts, setFeedPosts] = useState(posts);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePublish = (post: PostData) => {
+    setFeedPosts((prev) => [post, ...prev]);
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#F6ECDF]">
       <Sidebar activeNav="feed" />
@@ -21,7 +33,7 @@ export default function Home() {
             </p>
           </div>
 
-          <CreatePostPrompt />
+          <CreatePostPrompt onOpen={() => setIsModalOpen(true)} />
 
           <div className="mb-[14px] flex items-center gap-[14px]">
             <span className="text-[12.5px] font-extrabold tracking-wide text-[#8A7C6D]">
@@ -31,12 +43,20 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-4">
-            {posts.map((post) => (
+            {feedPosts.map((post) => (
               <Post key={post.id} post={post} />
             ))}
           </div>
         </div>
       </main>
+
+      {isModalOpen && (
+        <CreatePostModal
+          kids={kids}
+          onClose={() => setIsModalOpen(false)}
+          onPublish={handlePublish}
+        />
+      )}
     </div>
   );
 }
