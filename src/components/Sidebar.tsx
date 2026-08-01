@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { currentUser, navItems, pageInfo, NavItemId } from "@/data/mock";
+import { useRouter } from "next/navigation";
+import { navItems, pageInfo, NavItemId } from "@/data/mock";
+import { createClient } from "@/utils/supabase/client";
+import { type UserProfile } from "@/types/profile";
 
 function SunIcon() {
   return (
@@ -68,6 +71,12 @@ const NAV_HREFS: Record<NavItemId, string> = {
   account: "#",
 };
 
+const ROLE_LABELS: Record<UserProfile["role"], string> = {
+  staff: "Personal",
+  parent: "Familia",
+  admin: "Admin",
+};
+
 function SidebarContent({
   activeNav,
   onCreatePost,
@@ -75,6 +84,51 @@ function SidebarContent({
   activeNav: NavItemId;
   onCreatePost?: () => void;
 }) {
+  const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("full_name, role")
+        .eq("id", user.id)
+        .single();
+
+      if (userRow) {
+        setProfile({
+          fullName: userRow.full_name,
+          role: userRow.role,
+          initial: userRow.full_name.charAt(0).toUpperCase(),
+        });
+        return;
+      }
+
+      const meta = user.user_metadata ?? {};
+      const fullName = (meta.full_name as string) ?? user.email ?? "Usuario";
+      const role = (meta.role as UserProfile["role"]) ?? "parent";
+      setProfile({
+        fullName,
+        role,
+        initial: fullName.charAt(0).toUpperCase(),
+      });
+    };
+    loadProfile();
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <>
       <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
@@ -120,15 +174,18 @@ function SidebarContent({
       <div className="mt-[10px] border-t border-[#ECE0D0] pt-[14px]">
         <div className="flex items-center gap-[11px] px-2 py-[6px]">
           <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full bg-[#F2937A] font-fredoka font-semibold text-white" style={{ fontSize: 16 }}>
-            {currentUser.initial}
+            {profile?.initial ?? "·"}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-extrabold text-[#3F362E]">{currentUser.name}</div>
+            <div className="truncate text-sm font-extrabold text-[#3F362E]">
+              {profile?.fullName ?? "Cargando…"}
+            </div>
             <div className="text-xs text-[#A89A8B]">
-              {currentUser.role} · {currentUser.group}
+              {profile ? ROLE_LABELS[profile.role] : ""}
             </div>
           </div>
           <button
+            onClick={handleSignOut}
             title="Cerrar sesión"
             className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-[#F6ECDF] text-[#94887B]"
           >

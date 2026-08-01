@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 function SunIcon() {
   return (
@@ -13,8 +15,32 @@ function SunIcon() {
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("caro@opendaycare.com");
+  const router = useRouter();
+  const supabase = createClient();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setLoading(false);
+      setError("Email o contraseña incorrectos.");
+      return;
+    }
+
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <div className="grid min-h-screen bg-[#FBF4EC] lg:grid-cols-[1.05fr_1fr]">
@@ -46,7 +72,7 @@ export default function LoginPage() {
       </div>
 
       <div className="flex items-center justify-center p-10">
-        <div className="w-full max-w-[392px]">
+        <form onSubmit={handleSubmit} className="w-full max-w-[392px]">
           <h2 className="m-0 mb-[6px] font-fredoka text-[30px] font-semibold text-[#3F362E]">
             Iniciar sesión
           </h2>
@@ -57,6 +83,7 @@ export default function LoginPage() {
           <div className="mb-[8px] text-[12px] font-bold tracking-[.7px] text-[#94887B]">EMAIL</div>
           <input
             type="email"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mb-[18px] w-full rounded-[14px] border-[1.5px] border-[#EADFD0] bg-white px-4 py-[14px] text-[15px] text-[#3F362E] outline-none"
@@ -64,6 +91,7 @@ export default function LoginPage() {
           <div className="mb-[8px] text-[12px] font-bold tracking-[.7px] text-[#94887B]">CONTRASEÑA</div>
           <input
             type="password"
+            required
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -75,12 +103,19 @@ export default function LoginPage() {
             </a>
           </div>
 
-          <Link
-            href="/"
-            className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-4 py-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)]"
+          {error && (
+            <div className="mb-[14px] rounded-[12px] border-[1.5px] border-[#F2A78E] bg-[#FDEBE3] px-4 py-3 text-[13.5px] font-semibold text-[#C5503A]">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="block w-full rounded-[15px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-4 py-[15px] text-center text-[16px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Iniciar sesión
-          </Link>
+            {loading ? "Ingresando…" : "Iniciar sesión"}
+          </button>
 
           <p className="mt-[24px] text-center text-[14.5px] text-[#94887B]">
             ¿Te invitó la guardería?{" "}
@@ -88,7 +123,7 @@ export default function LoginPage() {
               Activá tu cuenta
             </Link>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );
