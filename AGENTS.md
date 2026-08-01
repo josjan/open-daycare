@@ -51,6 +51,16 @@ Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available glo
 - Prefer local Supabase CLI for dev workflows; apply changes to remote only when intended
 - Run `get_advisors` after DDL changes to catch missing RLS policies and security issues
 
+### Migraciones (obligatorio)
+
+Siempre se usan migraciones versionadas para CUALQUIER manipulación de la base de datos. Esta es la única vía permitida; no hay excepciones.
+
+- **Todo cambio de base de datos** (DDL: tablas, columnas, índices, RLS, policies; y DML/seed) se aplica vía MCP `apply_migration`, nunca con DDL directo vía `execute_sql`.
+- Cada migración remota debe reflejarse como archivo local en `supabase/migrations/<version>_<nombre>.sql` con el **mismo version y el mismo SQL**, para que el repo versione el historial.
+- Una migración se ejecuta una sola vez (versionada); re-ejecutarla duplicaría datos o fallaría.
+- No hardcodear IDs generados en migraciones de datos; las referencias futuras se resuelven por valores estables (ej. `WHERE name = '...'`).
+- Verificación estándar tras aplicar: `list_migrations`, `list_tables`, consultas de lectura, y `get_advisors` (security y performance).
+
 ## Reglas de código
 
 - Usar código limpio, nombres, funciones, variables, etc. en inglés 

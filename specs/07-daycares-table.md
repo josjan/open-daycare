@@ -74,15 +74,15 @@ Convención para referencias futuras: los IDs no se hardcodean. Las migraciones 
 
 ## Acceptance criteria
 
-- [ ] `list_migrations` incluye una migración `create_daycares_table` aplicada al proyecto.
-- [ ] `list_tables` muestra `public.daycares` con exactamente las columnas `id` (uuid, PK, default `gen_random_uuid()`), `name` (text, not null), `address` (text, nullable), `created_at` (timestamptz, default `now()`); no existe `updated_at`.
-- [ ] `docs/opendaycare-database-schema.md` (§1 `daycares`) incluye la columna `address` (text, nullable).
-- [ ] `SELECT name, address FROM public.daycares ORDER BY created_at` devuelve exactamente 4 filas con sus direcciones: "Guardería Sala Soles", "Guardería Los Peques", "Guardería Arcoíris", "Guardería Estrellitas".
-- [ ] Los 4 IDs son UUID distintos (no repetidos).
-- [ ] `daycares` tiene RLS habilitado (`relrowsecurity = true`).
-- [ ] `daycares` no tiene policies (deny-all para `anon`/`authenticated`).
-- [ ] `get_advisors` (security y performance) no reporta issues nuevos introducidos por esta migración.
-- [ ] `supabase/migrations/20260801155229_create_daycares_table.sql` existe en el repo y su contenido coincide con la migración remota `create_daycares_table`.
+- [x] `list_migrations` incluye una migración `create_daycares_table` aplicada al proyecto.
+- [x] `list_tables` muestra `public.daycares` con exactamente las columnas `id` (uuid, PK, default `gen_random_uuid()`), `name` (text, not null), `address` (text, nullable), `created_at` (timestamptz, default `now()`); no existe `updated_at`.
+- [x] `docs/opendaycare-database-schema.md` (§1 `daycares`) incluye la columna `address` (text, nullable).
+- [x] `SELECT name, address FROM public.daycares ORDER BY created_at` devuelve exactamente 4 filas con sus direcciones: "Guardería Sala Soles", "Guardería Los Peques", "Guardería Arcoíris", "Guardería Estrellitas".
+- [x] Los 4 IDs son UUID distintos (no repetidos).
+- [x] `daycares` tiene RLS habilitado (`relrowsecurity = true`).
+- [x] `daycares` no tiene policies (deny-all para `anon`/`authenticated`).
+- [x] `get_advisors` (security y performance) no reporta issues nuevos introducidos por esta migración.
+- [x] `supabase/migrations/20260801155229_create_daycares_table.sql` existe en el repo y su contenido coincide con la migración remota `create_daycares_table`.
 
 ---
 
