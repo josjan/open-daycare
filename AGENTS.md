@@ -23,13 +23,14 @@ Run `lint -> typecheck -> build` for pre-PR verification.
 - `src/components/` — reusable components (Sidebar, Post, CreatePostPrompt)
 - `@/*` alias → `./src/*` (tsconfig.json)
 - `references/{pantallas,screenshots}/` — design mocks
-- `specs/` — feature specs (markdown)
+- `specs/` — feature specs (markdown); los specs que tocan la base de datos van en `specs/database/`
 - `.playwright-mcp/` — Playwright screenshots
 
 ## Conventions
 
 - Tailwind utility classes only (no CSS modules, styled-components)
 - PostCSS with Tailwind plugin only
+- Cualquier spec que toque la base de datos (tablas, enums, RLS, migraciones) va en `specs/database/`, no en la raíz de `specs/`
 
 ## OpenCode
 
