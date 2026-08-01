@@ -36,10 +36,20 @@ Run `lint -> typecheck -> build` for pre-PR verification.
 Installed skills (`.agents/skills/`):
 - `spec` — design spec workflow (ask clarifying questions, build spec section by section)
 - `spec-impl` — implement approved spec (create branch, implement step by step, pause for diff review)
+- `supabase` — use for ANY task involving Supabase (Database, Auth, Edge Functions, Realtime, Storage, CLI, migrations, RLS)
+- `supabase-postgres-best-practices` — load BEFORE writing/changing anything in Postgres (schema design, migrations, RLS, indexes, triggers); also for diagnosing slow queries
 
 Spec checking: use `@spec-checker @specs/<file>.md` to verify acceptance criteria against the current implementation. The spec-checker agent reads the spec, inspects the codebase, runs lint/typecheck, uses Playwright to validate visually, and updates the checkboxes in the spec file.
 
 Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs.
+
+## Supabase
+
+- Supabase MCP connected (via `~/.config/opencode`) for database work: schema, migrations, RLS, logs, edge functions
+- DB schema reference (not implemented yet): `docs` reference → `../07-DB-Schema` (use as source of truth when creating tables)
+- Always load the `supabase` skill before Supabase tasks and `supabase-postgres-best-practices` before DDL/schema work
+- Prefer local Supabase CLI for dev workflows; apply changes to remote only when intended
+- Run `get_advisors` after DDL changes to catch missing RLS policies and security issues
 
 ## Reglas de código
 
