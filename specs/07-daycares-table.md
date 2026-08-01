@@ -1,6 +1,6 @@
 # SPEC 07 — Tabla `daycares` en Supabase (primera migración)
 
-> **Estado:** Draft
+> **Estado:** Aprobado
 > **Depende de:** — (primera tabla, sin dependencias)
 > **Fecha:** 2026-08-01
 > **Objetivo:** Crear y poblar la tabla `daycares` en Supabase siguiendo el esquema de `docs`, como primera migración versionada vía MCP `apply_migration`, con RLS habilitado y 4 guarderías de semilla incluyendo "Guardería Sala Soles".
