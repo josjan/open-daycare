@@ -47,6 +47,7 @@ export default function CreatePostModal({
   const [isDragging, setIsDragging] = useState(false);
   const photosRef = useRef<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -61,9 +62,12 @@ export default function CreatePostModal({
   }, []);
 
   const addFiles = (files: File[]) => {
+    const images = files.filter((file) => file.type.startsWith("image/"));
     const remaining = 4 - photos.length;
     if (remaining <= 0) return;
-    const urls = files.slice(0, remaining).map((file) => URL.createObjectURL(file));
+    const urls = images
+      .slice(0, remaining)
+      .map((file) => URL.createObjectURL(file));
     const next = [...photos, ...urls];
     setPhotos(next);
     photosRef.current = next;
@@ -84,35 +88,22 @@ export default function CreatePostModal({
       now.getMinutes(),
     ).padStart(2, "0")}`;
     const kid = kids.find((k) => k.id === audienceId);
+    const firstName = kid ? kid.name.split(" ")[0] : null;
     const image =
       photos.length > 0 ? { label: "foto", src: photos[0] } : undefined;
 
-    if (!kid) {
-      onPublish({
-        id: `post-${Date.now()}`,
-        childName: "Anuncio general",
-        childInitial: "",
-        childAvatarBg: "#CCD8F4",
-        category,
-        time,
-        audience: "toda la sala",
-        content,
-        image,
-        likes: 0,
-        comments: 0,
-      });
-      return;
+    if (image) {
+      photosRef.current = photosRef.current.filter((url) => url !== image.src);
     }
 
-    const firstName = kid.name.split(" ")[0];
     onPublish({
-      id: `post-${Date.now()}`,
-      childName: firstName,
-      childInitial: kid.initial,
-      childAvatarBg: kid.avatarBg,
+      id: crypto.randomUUID(),
+      childName: firstName ?? "Anuncio general",
+      childInitial: kid?.initial ?? "",
+      childAvatarBg: kid?.avatarBg ?? "#CCD8F4",
       category,
       time,
-      audience: `familia de ${firstName}`,
+      audience: firstName ? `familia de ${firstName}` : "toda la sala",
       content,
       image,
       likes: 0,
@@ -123,24 +114,30 @@ export default function CreatePostModal({
   const canPublish = description.trim().length > 0;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#3F362E]/45 px-6 pb-10 pt-12"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-[580px] overflow-hidden rounded-[24px] border border-[#ECE0D0] bg-[#FBF4EC] shadow-[0_20px_50px_-24px_rgba(63,54,46,.35)]">
+      <div
+        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#3F362E]/45 px-6 pb-10 pt-12"
+        onClick={onClose}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-post-title"
+          className="w-full max-w-[580px] overflow-hidden rounded-[24px] border border-[#ECE0D0] bg-[#FBF4EC] shadow-[0_20px_50px_-24px_rgba(63,54,46,.35)]"
+          onClick={(event) => event.stopPropagation()}
+        >
         <div className="flex items-center justify-between border-b border-[#ECE0D0] px-[26px] py-5">
           <button
+            type="button"
             onClick={onClose}
             className="text-[15px] font-bold text-[#94887B]"
           >
             Cancelar
           </button>
-          <span className="font-fredoka text-lg font-semibold text-[#3F362E]">
+          <span id="create-post-title" className="font-fredoka text-lg font-semibold text-[#3F362E]">
             Nueva publicación
           </span>
           <button
+            type="button"
             onClick={handlePublish}
             disabled={!canPublish}
             className="text-[15px] font-extrabold text-[#D9583C] disabled:cursor-not-allowed disabled:opacity-40"
@@ -159,7 +156,9 @@ export default function CreatePostModal({
               return (
                 <button
                   key={kid.id}
+                  type="button"
                   onClick={() => setAudienceId(kid.id)}
+                  aria-pressed={selected}
                   className={`flex items-center gap-2 rounded-full py-[6px] pl-[6px] pr-[14px] text-[14px] font-bold ${
                     selected
                       ? "border-[1.5px] border-[#3F362E] bg-[#3F362E] text-white"
@@ -177,7 +176,9 @@ export default function CreatePostModal({
               );
             })}
             <button
+              type="button"
               onClick={() => setAudienceId("all")}
+              aria-pressed={audienceId === "all"}
               className={`rounded-full px-4 py-[6px] text-[14px] font-bold ${
                 audienceId === "all"
                   ? "border-[1.5px] border-[#3F362E] bg-[#3F362E] text-white"
@@ -198,7 +199,9 @@ export default function CreatePostModal({
               return (
                 <button
                   key={cat}
+                  type="button"
                   onClick={() => setCategory(cat)}
+                  aria-pressed={selected}
                   className={`rounded-full px-4 py-2 text-[13.5px] font-extrabold ${
                     selected
                       ? "ring-2 ring-[#3F362E] ring-offset-2 ring-offset-[#FBF4EC]"
@@ -229,11 +232,19 @@ export default function CreatePostModal({
             className={`flex gap-3 rounded-2xl ${isDragging ? "bg-[#F4ECE1]" : ""}`}
             onDragOver={(event) => {
               event.preventDefault();
+            }}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              dragCounterRef.current += 1;
               setIsDragging(true);
             }}
-            onDragLeave={() => setIsDragging(false)}
+            onDragLeave={() => {
+              dragCounterRef.current -= 1;
+              if (dragCounterRef.current <= 0) setIsDragging(false);
+            }}
             onDrop={(event) => {
               event.preventDefault();
+              dragCounterRef.current = 0;
               setIsDragging(false);
               addFiles(Array.from(event.dataTransfer.files));
             }}
@@ -243,6 +254,7 @@ export default function CreatePostModal({
               type="file"
               multiple
               accept="image/*"
+              aria-label="Agregar fotos"
               className="hidden"
               onChange={(event) => {
                 if (event.target.files) addFiles(Array.from(event.target.files));
@@ -256,6 +268,7 @@ export default function CreatePostModal({
               >
                 <img src={url} alt={`foto ${index + 1}`} className="h-full w-full object-cover" />
                 <button
+                  type="button"
                   onClick={() => removePhoto(index)}
                   aria-label="Quitar foto"
                   className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#3F362E]/60 text-xs font-bold text-white"
@@ -266,6 +279,7 @@ export default function CreatePostModal({
             ))}
             {photos.length < 4 && (
               <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="flex h-24 w-24 flex-none flex-col items-center justify-center gap-[6px] rounded-[14px] border-[1.5px] border-dashed border-[#DBCDBA] bg-[#F4ECE1] text-[#B0A290]"
               >
