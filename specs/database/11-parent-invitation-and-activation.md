@@ -1,6 +1,6 @@
 # SPEC 11 — Vinculación de un padre: invitación por email (Resend) y activación de cuenta
 
-> **Estado:** Draft
+> **Estado:** Implementado
 > **Depende de:** 05-vincular-padre-modal, 08-users-table, 09-auth, 10-rooms-children-kids
 > **Fecha:** 2026-08-02
 > **Objetivo:** Vincular un padre a un niño de punta a punta: el staff crea una invitación desde `/kids/[id]` que persiste en `invitations` y se envía por email con Resend, y el padre activa su cuenta en `/activate` con el código de la invitación, creando su usuario, su perfil y el vínculo en `parent_children`.
@@ -251,28 +251,28 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] `list_migrations` incluye `create_invitations_parent_children_tables` y `add_users_profile_trigger` aplicadas.
-- [ ] Los enums `public.relationship_type` (`father`, `mother`, `guardian`) e `public.invitation_status` (`pending`, `accepted`, `expired`, `cancelled`) existen con exactamente esos valores.
-- [ ] `public.invitations` existe con las columnas del `docs` (`child_id` FK, `invited_by` FK, `full_name`, `email`, `relationship`, `code` UNIQUE, `status`, `expires_at`, `accepted_at` nullable, `created_at`) y RLS habilitado.
-- [ ] `public.parent_children` existe con `parent_id` FK, `child_id` FK, `relationship`, `created_at`, UNIQUE (`parent_id`, `child_id`) y RLS habilitado.
-- [ ] Existen los índices `invitations_child_id_idx`, `invitations_email_idx`, `parent_children_child_id_idx` y `parent_children_parent_id_idx`.
-- [ ] Policies: `invitations_select_staff` (SELECT) e `invitations_insert_staff` (INSERT) en `invitations`; `parent_children_select_staff` (SELECT) en `parent_children`; `users_select_staff` (SELECT) en `users`.
-- [ ] El trigger `on_auth_user_created` existe y crea la fila en `public.users` al insertar un auth user con `raw_user_meta_data` (`daycare_id`, `role`, `full_name`); sin metadata no rompe el insert.
-- [ ] `supabase/migrations/<version>_create_invitations_parent_children_tables.sql` y `<version>_add_users_profile_trigger.sql` existen y coinciden con el remoto.
-- [ ] `POST /api/invitations` con sesión staff inserta una fila `pending` con `code` de 5 chars alfanuméricos en mayúsculas, `expires_at` = +7 días, `invited_by` = el staff, y responde `{ code }`.
-- [ ] Reinvitar el mismo email al mismo niño con invitación pendiente devuelve 400 con mensaje claro.
-- [ ] El envío con Resend es best-effort: si la API key no está o el envío falla, la invitación se persiste igual y el modal muestra el código.
-- [ ] `LinkParentModal` muestra loading/error inline, ya no genera el código en el cliente y, al enviar, muestra el código devuelto por el servidor.
-- [ ] El perfil `/kids/[id]` carga los padres reales: activos de `parent_children` (con nombre de `users`) y pendientes de `invitations`, con labels Mamá/Papá/Tutor-a y badges ACTIVA/PENDIENTE.
-- [ ] `POST /api/activate` con invitación válida crea el auth user (`email_confirm: true`), la fila en `public.users` (vía trigger), el vínculo en `parent_children` y marca la invitación `accepted` con `accepted_at`.
-- [ ] Activar con un email que ya tiene cuenta reutiliza el usuario (sin duplicar) y solo crea el vínculo nuevo.
-- [ ] Invitación vencida, cancelada o ya usada devuelve un error claro y no crea nada.
-- [ ] Código + email que no coinciden con ninguna invitación devuelve un error genérico.
-- [ ] `/activate` prellena `code`/`email` desde la URL, exige password ≥ 8 chars y el checkbox de fotos, y al activar redirige a `/login?activated=1`.
-- [ ] `/login` con `?activated=1` muestra el banner de cuenta activada.
-- [ ] `children.photo_consent` queda `true` para el niño vinculado tras la activación.
-- [ ] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
-- [ ] `get_advisors` (security y performance) no reporta issues nuevos.
+- [x] `list_migrations` incluye `create_invitations_parent_children_tables` y `add_users_profile_trigger` aplicadas.
+- [x] Los enums `public.relationship_type` (`father`, `mother`, `guardian`) e `public.invitation_status` (`pending`, `accepted`, `expired`, `cancelled`) existen con exactamente esos valores.
+- [x] `public.invitations` existe con las columnas del `docs` (`child_id` FK, `invited_by` FK, `full_name`, `email`, `relationship`, `code` UNIQUE, `status`, `expires_at`, `accepted_at` nullable, `created_at`) y RLS habilitado.
+- [x] `public.parent_children` existe con `parent_id` FK, `child_id` FK, `relationship`, `created_at`, UNIQUE (`parent_id`, `child_id`) y RLS habilitado.
+- [x] Existen los índices `invitations_child_id_idx`, `invitations_email_idx`, `parent_children_child_id_idx` y `parent_children_parent_id_idx`.
+- [x] Policies: `invitations_select_staff` (SELECT) e `invitations_insert_staff` (INSERT) en `invitations`; `parent_children_select_staff` (SELECT) en `parent_children`; `users_select_staff` (SELECT) en `users`.
+- [x] El trigger `on_auth_user_created` existe y crea la fila en `public.users` al insertar un auth user con `raw_user_meta_data` (`daycare_id`, `role`, `full_name`); sin metadata no rompe el insert.
+- [x] `supabase/migrations/<version>_create_invitations_parent_children_tables.sql` y `<version>_add_users_profile_trigger.sql` existen y coinciden con el remoto (junto con `_invitations_parent_children_initplan_fix`, `_revoke_handle_new_user_execute` y `_add_private_is_staff_function`, que la implementación agregó).
+- [x] `POST /api/invitations` con sesión staff inserta una fila `pending` con `code` de 5 chars alfanuméricos en mayúsculas, `expires_at` = +7 días, `invited_by` = el staff, y responde `{ code }`.
+- [x] Reinvitar el mismo email al mismo niño con invitación pendiente devuelve 400 con mensaje claro.
+- [x] El envío con Resend es best-effort: si la API key no está o el envío falla, la invitación se persiste igual y el modal muestra el código.
+- [x] `LinkParentModal` muestra loading/error inline, ya no genera el código en el cliente y, al enviar, muestra el código devuelto por el servidor.
+- [x] El perfil `/kids/[id]` carga los padres reales: activos de `parent_children` (con nombre de `users`) y pendientes de `invitations`, con labels Mamá/Papá/Tutor-a y badges ACTIVA/PENDIENTE.
+- [x] `POST /api/activate` con invitación válida crea el auth user (`email_confirm: true`), la fila en `public.users` (vía trigger), el vínculo en `parent_children` y marca la invitación `accepted` con `accepted_at`.
+- [x] Activar con un email que ya tiene cuenta reutiliza el usuario (sin duplicar) y solo crea el vínculo nuevo.
+- [x] Invitación vencida, cancelada o ya usada devuelve un error claro y no crea nada.
+- [x] Código + email que no coinciden con ninguna invitación devuelve un error genérico.
+- [x] `/activate` prellena `code`/`email` desde la URL, exige password ≥ 8 chars y el checkbox de fotos, y al activar redirige a `/login?activated=1`.
+- [x] `/login` con `?activated=1` muestra el banner de cuenta activada.
+- [x] `children.photo_consent` queda `true` para el niño vinculado tras la activación.
+- [x] `npm run lint`, `npx tsc --noEmit` y `npm run build` pasan sin errores.
+- [x] `get_advisors` (security y performance) no reporta issues nuevos.
 
 ---
 
