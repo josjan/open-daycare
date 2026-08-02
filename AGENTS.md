@@ -40,7 +40,12 @@ Installed skills (`.agents/skills/`):
 - `supabase` — use for ANY task involving Supabase (Database, Auth, Edge Functions, Realtime, Storage, CLI, migrations, RLS)
 - `supabase-postgres-best-practices` — load BEFORE writing/changing anything in Postgres (schema design, migrations, RLS, indexes, triggers); also for diagnosing slow queries
 
-Spec checking: use `@spec-checker @specs/<file>.md` to verify acceptance criteria against the current implementation. The spec-checker agent reads the spec, inspects the codebase, runs lint/typecheck, uses Playwright to validate visually, and updates the checkboxes in the spec file.
+Installed agents (`.opencode/agents/`):
+- `accessibility-checker` — audita y corrige archivos según WCAG 2.2 AA (accesibilidad, ARIA, contraste, teclado y foco); verifica con Playwright y corre el flujo pre-PR
+- `react-best-practices` — aplica las mejores prácticas de React y las últimas recomendaciones de la doc oficial a los archivos indicados, verificando con Context7
+- `spec-checker` — verifica los criterios de aceptación de un spec: lee el spec, inspecciona el codebase, corre lint/typecheck, valida visualmente con Playwright y actualiza los checkboxes del spec
+
+Spec checking: use `@spec-checker @specs/<file>.md` to verify acceptance criteria against the current implementation.
 
 Playwright MCP (`opencode.json`) for browser testing. Context7 MCP available globally for framework docs.
 

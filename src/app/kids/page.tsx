@@ -44,98 +44,122 @@ function PlusIcon() {
   );
 }
 
+function groupKidsByRoom(
+  roomRows: Room[],
+  childRows: ChildRow[],
+): Record<string, Kid[]> {
+  const grouped: Record<string, Kid[]> = {};
+  roomRows.forEach((room) => {
+    grouped[room.id] = [];
+  });
+
+  let avatarIndex = 0;
+  childRows.forEach((child) => {
+    const kid = childToKid(child, avatarIndex);
+    avatarIndex += 1;
+    const list = grouped[child.room_id] ?? [];
+    list.push(kid);
+    grouped[child.room_id] = list;
+  });
+
+  return grouped;
+}
+
 export default function KidsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [kidsByRoom, setKidsByRoom] = useState<Record<string, Kid[]>>({});  const [loading, setLoading] = useState(true);
+  const [kidsByRoom, setKidsByRoom] = useState<Record<string, Kid[]>>({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddKidOpen, setIsAddKidOpen] = useState(false);
 
-  const loadKids = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    let ignore = false;
     const supabase = createClient();
 
-    const { data: roomRows, error: roomsError } = await supabase
-      .from("rooms")
-      .select("id,name")
-      .order("created_at");
-    if (roomsError) {
-      setError("No se pudieron cargar las salas.");
-      setLoading(false);
-      return;
+    async function loadKids() {
+      try {
+        const { data: roomRows, error: roomsError } = await supabase
+          .from("rooms")
+          .select("id,name")
+          .order("created_at");
+        if (ignore) return;
+        if (roomsError) {
+          setError("No se pudieron cargar las salas.");
+          return;
+        }
+
+        const { data: childRows, error: childrenError } = await supabase
+          .from("children")
+          .select("*, rooms(name)");
+        if (ignore) return;
+        if (childrenError) {
+          setError("No se pudieron cargar los niños.");
+          return;
+        }
+
+        setRooms(roomRows ?? []);
+        setKidsByRoom(groupKidsByRoom(roomRows ?? [], childRows ?? []));
+      } catch {
+        if (!ignore) setError("No se pudieron cargar los datos.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
     }
 
-    const { data: childRows, error: childrenError } = await supabase
-      .from("children")
-      .select("*, rooms(name)");
-    if (childrenError) {
-      setError("No se pudieron cargar los niños.");
-      setLoading(false);
-      return;
-    }
+    loadKids();
 
-    const grouped: Record<string, Kid[]> = {};
-    (roomRows ?? []).forEach((room) => {
-      grouped[room.id] = [];
-    });
-
-    let avatarIndex = 0;
-    (childRows ?? []).forEach((child) => {
-      const kid = childToKid(child as ChildRow, avatarIndex);
-      avatarIndex += 1;
-      const list = grouped[child.room_id] ?? [];
-      list.push(kid);
-      grouped[child.room_id] = list;
-    });
-
-    setRooms(roomRows ?? []);
-    setKidsByRoom(grouped);
-    setLoading(false);
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  useEffect(() => {
-    loadKids();
-  }, [loadKids]);
+  const closeAddKidModal = useCallback(() => {
+    setIsAddKidOpen(false);
+  }, []);
 
-  async function handleSaveKid(form: NewChildForm): Promise<boolean> {
-    const supabase = createClient();
-    const today = new Date();
-    const enrolledAt = [
-      today.getFullYear(),
-      String(today.getMonth() + 1).padStart(2, "0"),
-      String(today.getDate()).padStart(2, "0"),
-    ].join("-");
+  const handleSaveKid = useCallback(
+    async (form: NewChildForm): Promise<boolean> => {
+      const supabase = createClient();
+      const today = new Date();
+      const enrolledAt = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-");
 
-    const { data, error } = await supabase
-      .from("children")
-      .insert({
-        room_id: form.roomId,
-        full_name: form.name,
-        birth_date: form.birthDateISO,
-        enrolled_at: enrolledAt,
-        medical_notes: form.medicalNotes.length > 0 ? form.medicalNotes : null,
-        allergy_tags: form.allergyTags,
-        photo_consent: true,
-        status: "active",
-      })
-      .select("*, rooms(name)")
-      .single();
+      const { data, error } = await supabase
+        .from("children")
+        .insert({
+          room_id: form.roomId,
+          full_name: form.name,
+          birth_date: form.birthDateISO,
+          enrolled_at: enrolledAt,
+          medical_notes: form.medicalNotes.length > 0 ? form.medicalNotes : null,
+          allergy_tags: form.allergyTags,
+          photo_consent: true,
+          status: "active",
+        })
+        .select("*, rooms(name)")
+        .single();
 
-    if (error || !data) return false;
+      if (error || !data) return false;
 
-    const avatarIndex = Object.values(kidsByRoom).reduce(
-      (total, list) => total + list.length,
-      0,
-    );
-    const kid = childToKid(data as ChildRow, avatarIndex);
+      setKidsByRoom((prev) => {
+        const avatarIndex = Object.values(prev).reduce(
+          (total, list) => total + list.length,
+          0,
+        );
+        const kid = childToKid(data as ChildRow, avatarIndex);
+        return {
+          ...prev,
+          [form.roomId]: [...(prev[form.roomId] ?? []), kid],
+        };
+      });
 
-    setKidsByRoom((prev) => ({
-      ...prev,
-      [form.roomId]: [...(prev[form.roomId] ?? []), kid],
-    }));
-
-    return true;
-  }
+      return true;
+    },
+    [],
+  );
 
   return (
     <div className="flex min-h-screen bg-[#F6ECDF]">
@@ -224,7 +248,7 @@ export default function KidsPage() {
       {isAddKidOpen && (
         <AddKidModal
           rooms={rooms}
-          onClose={() => setIsAddKidOpen(false)}
+          onClose={closeAddKidModal}
           onSave={handleSaveKid}
         />
       )}

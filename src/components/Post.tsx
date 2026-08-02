@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import { type Post as PostData, categoryStyles } from "@/data/mock";
 
 function HeartIcon() {
@@ -36,6 +39,12 @@ function PhotoIcon() {
 
 export default function Post({ post }: { post: PostData }) {
   const style = categoryStyles[post.category];
+  const imageSrc = post.image?.src;
+
+  useEffect(() => {
+    if (!imageSrc?.startsWith("blob:")) return;
+    return () => URL.revokeObjectURL(imageSrc);
+  }, [imageSrc]);
 
   return (
     <div className="rounded-[20px] border border-[#ECE0D0] bg-[#FFFDF9] p-5 px-[22px] shadow-[0_4px_16px_-12px_rgba(120,90,60,.5)]">

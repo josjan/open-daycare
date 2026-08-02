@@ -60,33 +60,8 @@ export interface PageInfo {
   date: string;
 }
 
-// ── Parent ──
-export type ParentStatus = "active" | "pending";
-
-export interface Parent {
-  id: string;
-  name: string;
-  initial: string;
-  avatarBg: string;
-  role: string;
-  status: ParentStatus;
-}
-
-// ── Kid ──
-export interface Kid {
-  id: string;
-  name: string;
-  initial: string;
-  avatarBg: string;
-  avatarText: string;
-  age: number;
-  room: string;
-  birthDate: string;
-  enrolledSince: string;
-  allergies?: string;
-  allergyLabel?: string;   // short badge label, e.g. "MANÍ"
-  parents: Parent[];
-}
+import type { Kid } from "@/types/kid";
+export type { ParentStatus, Parent, Kid } from "@/types/kid";
 
 // ── Rooms ──
 export const rooms: string[] = ["Soles", "Lunas", "Estrellas"];

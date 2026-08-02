@@ -88,22 +88,22 @@ Descripción precargada (constante local del modal): `"Pintamos con témperas es
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` inicia sin errores.
-- [ ] Click en el prompt "Compartí un momento…" en `/` abre el modal con backdrop sobre el feed.
-- [ ] El modal replica `crear-publicacion.dc.html`: header Cancelar | Nueva publicación | Publicar, y secciones PARA, TIPO, DESCRIPCIÓN y FOTOS.
-- [ ] PARA muestra un pill por cada niño de `kids` (8) + "Toda la sala", con selección única y Mateo preseleccionado.
-- [ ] TIPO muestra exactamente los 7 pills (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio) con sus colores del template, selección única y Comida preseleccionada.
-- [ ] La textarea DESCRIPCIÓN viene precargada con el texto hardcodeado del template.
-- [ ] Publicar queda deshabilitado si se borra todo el texto de DESCRIPCIÓN.
-- [ ] FOTOS: se pueden agregar fotos por selector de archivos y por drag & drop, con preview real; no se superan 4 fotos; cada foto se puede quitar.
-- [ ] Publicar cierra el modal y agrega el post al top del feed con badge del tipo elegido, hora actual y audiencia correcta (`familia de {niño}` / `toda la sala`).
-- [ ] Un post con foto muestra la imagen real (src) en lugar del placeholder dashed; sin foto mantiene el placeholder.
-- [ ] Un post "Toda la sala" muestra "Anuncio general" con ícono de megáfono.
-- [ ] El modal se cierra por Cancelar, click en el backdrop y tecla Escape sin publicar.
-- [ ] Recargar la página restaura el feed original (el post publicado se pierde).
-- [ ] `npx tsc --noEmit` pasa sin errores.
-- [ ] `npm run lint` pasa sin errores.
-- [ ] `npm run build` pasa sin errores.
+- [x] `npm run dev` inicia sin errores.
+- [x] Click en el prompt "Compartí un momento…" en `/` abre el modal con backdrop sobre el feed.
+- [x] El modal replica `crear-publicacion.dc.html`: header Cancelar | Nueva publicación | Publicar, y secciones PARA, TIPO, DESCRIPCIÓN y FOTOS.
+- [x] PARA muestra un pill por cada niño de `kids` (8) + "Toda la sala", con selección única y Mateo preseleccionado.
+- [x] TIPO muestra exactamente los 7 pills (Comida, Siesta, Actividad, Logro, Ánimo, Foto, Anuncio) con sus colores del template, selección única y Comida preseleccionada.
+- [x] La textarea DESCRIPCIÓN viene precargada con el texto hardcodeado del template.
+- [x] Publicar queda deshabilitado si se borra todo el texto de DESCRIPCIÓN.
+- [x] FOTOS: se pueden agregar fotos por selector de archivos y por drag & drop, con preview real; no se superan 4 fotos; cada foto se puede quitar.
+- [x] Publicar cierra el modal y agrega el post al top del feed con badge del tipo elegido, hora actual y audiencia correcta (`familia de {niño}` / `toda la sala`).
+- [x] Un post con foto muestra la imagen real (src) en lugar del placeholder dashed; sin foto mantiene el placeholder.
+- [x] Un post "Toda la sala" muestra "Anuncio general" con ícono de megáfono.
+- [x] El modal se cierra por Cancelar, click en el backdrop y tecla Escape sin publicar.
+- [x] Recargar la página restaura el feed original (el post publicado se pierde).
+- [x] `npx tsc --noEmit` pasa sin errores.
+- [x] `npm run lint` pasa sin errores.
+- [x] `npm run build` pasa sin errores.
 
 ---
 

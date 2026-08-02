@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import CreatePostPrompt from "@/components/CreatePostPrompt";
 import CreatePostModal from "@/components/CreatePostModal";
 import Post from "@/components/Post";
+
 import { type Post as PostData, kids, pageInfo, posts } from "@/data/mock";
 
 export default function Home() {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Kid } from "@/data/mock";
-import { relationshipToDb } from "@/lib/relationship";
+import { relationshipToDb, type RelationshipLabel } from "@/lib/relationship";
 
 interface LinkParentModalProps {
   kid: Kid;
@@ -69,17 +69,24 @@ function SendIcon() {
 export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("Mamá");
+  const [role, setRole] = useState<RelationshipLabel>("Mamá");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    abortRef.current = controller;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      controller.abort();
+      abortRef.current = null;
+    };
   }, [onClose]);
 
   const nameValid = name.trim().length > 0;
@@ -101,6 +108,7 @@ export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentM
           email: email.trim(),
           relationship: relationshipToDb[role],
         }),
+        signal: abortRef.current?.signal,
       });
 
       const data = await res.json();
@@ -110,9 +118,15 @@ export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentM
         return;
       }
 
+      if (typeof data.code !== "string") {
+        setError("No se pudo enviar la invitación. Intentá de nuevo.");
+        return;
+      }
+
       setInviteCode(data.code);
       onInvited();
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError("No se pudo enviar la invitación. Intentá de nuevo.");
     } finally {
       setLoading(false);
@@ -166,20 +180,24 @@ export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentM
             </span>
           </div>
 
-          <div className="mb-2 text-[12px] font-extrabold tracking-[0.7px] text-[#94887B]">
+          <label htmlFor="parent-name" className="mb-2 block text-[12px] font-extrabold tracking-[0.7px] text-[#94887B]">
             NOMBRE DEL PADRE/MADRE
-          </div>
+          </label>
           <input
+            id="parent-name"
+            name="parentName"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Ej. Diego Fernández"
             className="mb-[18px] w-full rounded-[14px] border-[1.5px] border-[#EADFD0] bg-white px-4 py-[13px] text-[15px] text-[#3F362E] placeholder-[#B6A99B] outline-none"
           />
 
-          <div className="mb-2 text-[12px] font-extrabold tracking-[0.7px] text-[#94887B]">
+          <label htmlFor="parent-email" className="mb-2 block text-[12px] font-extrabold tracking-[0.7px] text-[#94887B]">
             EMAIL
-          </div>
+          </label>
           <input
+            id="parent-email"
+            name="parentEmail"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -196,7 +214,7 @@ export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentM
             PARENTESCO
           </div>
           <div className="mb-5 flex gap-[9px]">
-            {(["Mamá", "Papá", "Tutor/a"] as const).map((option) => {
+            {(Object.keys(relationshipToDb) as RelationshipLabel[]).map((option) => {
               const selected = option === role;
               return (
                 <button

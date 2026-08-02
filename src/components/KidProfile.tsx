@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Kid, Parent } from "@/data/mock";
+import type { Kid, Parent } from "@/types/kid";
 
-interface KidProfileProps {
+export interface KidProfileProps {
   kid: Kid;
   onLinkParent: () => void;
 }
@@ -11,6 +11,7 @@ interface KidProfileProps {
 function BackIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -28,6 +29,7 @@ function BackIcon() {
 function AlertIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="22"
       height="22"
       viewBox="0 0 24 24"
@@ -46,6 +48,7 @@ function AlertIcon() {
 function SunIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -64,6 +67,7 @@ function SunIcon() {
 function PlusIcon() {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="0 0 24 24"
@@ -138,7 +142,7 @@ export default function KidProfile({ kid, onLinkParent }: KidProfileProps) {
                 {kid.age} años · Sala {kid.room}
               </p>
             </div>
-            <button className="rounded-xl border border-[1.5px] border-[#ECE0D0] bg-[#FFFDF9] px-4 py-[9px] text-[14px] font-bold text-[#6E6359]">
+            <button type="button" className="rounded-xl border-[1.5px] border-[#ECE0D0] bg-[#FFFDF9] px-4 py-[9px] text-[14px] font-bold text-[#6E6359]">
               Editar
             </button>
           </div>
@@ -180,7 +184,7 @@ export default function KidProfile({ kid, onLinkParent }: KidProfileProps) {
         {/* Right column */}
         <div className="flex w-[300px] flex-none flex-col gap-[14px]">
           {/* Resumen del día button (placeholder) */}
-          <button className="flex w-full items-center justify-center gap-[9px] rounded-[14px] bg-[#3F362E] px-4 py-[13px] text-[15px] font-extrabold text-white">
+          <button type="button" className="flex w-full items-center justify-center gap-[9px] rounded-[14px] bg-[#3F362E] px-4 py-[13px] text-[15px] font-extrabold text-white">
             <SunIcon />
             Resumen del día
           </button>
