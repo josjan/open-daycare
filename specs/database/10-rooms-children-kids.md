@@ -3,7 +3,7 @@
 > **Estado:** Aprobado
 > **Depende de:** 07-daycares-table, 08-users-table, 09-auth
 > **Fecha:** 2026-08-01
-> **Objetivo:** Crear las tablas `rooms` y `children` en Supabase con 3 salas por defecto (Soles, Lunas, Estrellas) y sin niños de semilla, y conectar la pantalla `/kids` a la base de datos real: grid agrupado por sala con estado vacío y "Agregar niño" que persiste en `children`.
+> **Objetivo:** Crear las tablas `rooms` y `children` en Supabase con 3 salas por defecto (Soles, Lunas, Estrellas) y sin niños de semilla, y conectar la pantalla `/kids` a la base de datos real: grid agrupado por sala con estado vacío y "Agregar niño" que persiste en `children`, con la card de cada niño llevando a su perfil `/kids/[id]` real.
 
 ---
 
@@ -23,14 +23,14 @@
 - Copia local de la migración en `supabase/migrations/<version>_create_rooms_children_tables.sql` (mismo version y mismo SQL que el remoto).
 - `/kids` como client component que lee de la DB con `createBrowserClient` (`src/utils/supabase/client.ts`): rooms + children, grid **agrupado por sala** (una sección SOLES/LUNAS/ESTRELLAS con su conteo y su grid) y estado vacío por sala cuando no hay niños.
 - `AddKidModal`: "Guardar" inserta una fila en `children` (persistencia real). Mapeo: NOMBRE COMPLETO → `full_name`, FECHA → `birth_date` (ISO), SALA → `room_id`, ALERGIAS → `allergy_tags` (array en inglés, diccionario es→en con fallback), NOTAS MÉDICAS → `medical_notes`; `enrolled_at` = hoy, `photo_consent` = `true`, `status` = `active`. El niño nuevo se agrega al estado local del grid.
+- Perfil `/kids/[id]` conectado a la DB: una vez creado el niño, su card en el grid es un link que lleva al perfil real. El perfil carga la fila de `children` (con `rooms(name)`) por `id`, la convierte con `childToKid` y muestra los datos reales (edad, sala, nacimiento, ingreso, alergias/notas). Estados `loading`/`error`/404. Los padres siguen fuera de alcance (`parent_children`).
 - Tipos/helpers nuevos: `src/types/child.ts` (`Room`, `ChildRow`, `NewChildForm`), `src/lib/allergyTags.ts` (traducción es→en y etiqueta de badge) y `src/lib/childMappers.ts` (`childToKid`: construye el `Kid` de UI desde la fila de `children`).
 - Verificación: `list_migrations`, `list_tables`, consultas de lectura, `get_advisors` (security y performance) y flujo browser.
 
 **Out of scope (para futuros specs):**
 
 - Editar y archivar/eliminar niños (el botón "Editar" del perfil sigue como placeholder).
-- Conectar `/kids/[id]` (perfil) a la DB; requiere `parent_children`. Hasta entonces las cards de niños reales llevan a un 404 (riesgo documentado).
-- Tabla `parent_children` y padres vinculados (`parentCountLabel` siempre "sin padres vinculados").
+- Padres vinculados reales: el perfil muestra el bloque "PADRES VINCULADOS" vacío ("sin padres vinculados"); vincular padre queda en memoria y no persiste; requiere la tabla `parent_children`.
 - Feed `/` con datos reales (`CreatePostModal` sigue con mock `kids`).
 - Búsqueda funcional del grid.
 - Normalización de alergias a una tabla `allergies`.
@@ -189,7 +189,9 @@ export function childToKid(child: ChildRow, avatarIndex: number): Kid;
 
 7. **Insert en `/kids`** — `handleSave(form)` hace `supabase.from("children").insert({ room_id, full_name, birth_date, enrolled_at: hoy, medical_notes, allergy_tags, photo_consent: true, status: "active" }).select("*, rooms(name)").single()`; en éxito convierte con `childToKid`, lo agrega a la sección de su sala y cierra el modal; en error muestra un mensaje inline y no cierra. Verificar: guardar un niño lo muestra en su sección; recargar lo devuelve desde la DB.
 
-8. **Verificación final** — `npm run lint`, `npx tsc --noEmit`, `npm run build` limpios. Browser: login Jose → `/kids`, 3 secciones vacías, agregar niño (validación, etiquetas, notas), recargar, logout → `/login`; `/kids` sin sesión redirige a `/login`.
+8. **Conectar el perfil `/kids/[id]`** — reemplazar la búsqueda en `kids` mock por una carga en `useEffect` con `createClient()`: `from("children").select("*, rooms(name)").eq("id", id).maybeSingle()`; con `childToKid` construye el `Kid` y pasa el `Kid` real a `KidProfile`. Estados `loading` ("Cargando…"), `error` (mensaje inline) y `notFound()` si no existe la fila. "Vincular otro padre" sigue en memoria (no persiste). Verificar: desde `/kids`, cliquear la card de un niño creado abre su perfil con los datos reales.
+
+9. **Verificación final** — `npm run lint`, `npx tsc --noEmit`, `npm run build` limpios. Browser: login Jose → `/kids`, 3 secciones vacías, agregar niño (validación, etiquetas, notas), recargar, logout → `/login`; `/kids` sin sesión redirige a `/login`; la card del niño creado lleva a su perfil real.
 
 ---
 
@@ -211,6 +213,9 @@ export function childToKid(child: ChildRow, avatarIndex: number): Kid;
 - [ ] "Maní, Lactosa" en ALERGIAS se guarda como `{peanut, lactose}` y la card muestra el badge "MANÍ".
 - [ ] NOTAS MÉDICAS se guardan en `medical_notes`.
 - [ ] Recargar `/kids` mantiene los niños agregados (persistencia real en DB).
+- [ ] La card de un niño en el grid es un link a `/kids/[id]`; al crear un niño y cliquear su card, el perfil carga los datos reales desde `children` (nombre, edad, sala, nacimiento, ingreso, alergias/notas).
+- [ ] `/kids/[id]` muestra "Cargando…" mientras fetcha; un `id` inexistente dispara 404; un error de red muestra un mensaje inline.
+- [ ] El bloque "PADRES VINCULADOS" del perfil queda vacío para niños reales (sin `parent_children`).
 - [ ] Un error en el insert muestra un mensaje inline en el modal y no lo cierra.
 - [ ] `/kids` sin sesión redirige a `/login`; logout redirige a `/login`.
 - [ ] `npx tsc --noEmit` pasa sin errores.
@@ -231,9 +236,9 @@ export function childToKid(child: ChildRow, avatarIndex: number): Kid;
 - **Sí:** `enrolled_at` = `current_date` al insertar. El modal no tiene campo de ingreso y el mock lo derivaba del mes actual.
 - **Sí:** Índices en `rooms.daycare_id` y `children.room_id`. Regla del skill (indexar FKs); evita el aviso `unindexed_foreign_keys` del advisor.
 - **Sí:** `photo_consent` = `true` y `status` = `'active'` en el insert (defaults de la tabla).
+- **Sí:** Conectar `/kids/[id]` a la DB en este spec. La card del niño creado lleva a su perfil real (`childToKid` + fetch por `id`). Decisión del usuario; el 404 documentado en versiones anteriores del spec se elimina.
 - **No:** Edición, archivado o borrado de niños. El botón "Editar" del perfil sigue placeholder.
-- **No:** Conectar `/kids/[id]` a la DB. Requiere `parent_children` (spec futuro); los niños reales dan 404 hasta entonces.
-- **No:** `parent_children` ni padres vinculados.
+- **No:** Padres vinculados reales. El perfil muestra el bloque vacío y "Vincular otro padre" solo muta estado en memoria; requiere `parent_children` (spec futuro).
 - **No:** Feed `/` con datos reales; `CreatePostModal` sigue con `mock.kids`.
 - **No:** Búsqueda funcional, normalización de alergias a tabla `allergies`, multi-daycare, detección de duplicados.
 
@@ -246,7 +251,7 @@ export function childToKid(child: ChildRow, avatarIndex: number): Kid;
 | El grid pasa de 8 niños mock a vacío. | Comportamiento esperado (sin seed de children); se muestra estado vacío por sala. Documentado en los criterios. |
 | RLS bloquea la lectura si el usuario no es `staff`. | Solo Jose (staff) existe hoy; se verifica con su sesión. Con padres reales se revisará el modelo de permisos. |
 | Flash de pantalla vacía mientras fetcha. | Estado "Cargando…" hasta que rooms + children llegan. |
-| `/kids/[id]` da 404 para niños reales (perfil fuera de alcance). | Documentado; se ataca en un spec futuro con `parent_children`. |
+| `/kids/[id]` da 404 para niños reales. | Eliminado: el perfil carga el niño desde `children` por `id`; solo un `id` inexistente da 404. |
 | Insert falla (red o RLS) y el usuario pierde el formulario. | Error inline en el modal; no se cierra y no se agrega al grid. |
 | Re-ejecutar la migración duplicaría salas. | `apply_migration` es versionado: se ejecuta una sola vez por migración. |
 | Copia local desincronizada del historial remoto. | Mismo `version` y mismo SQL; cualquier cambio se refleja en ambos lados. |
@@ -256,8 +261,7 @@ export function childToKid(child: ChildRow, avatarIndex: number): Kid;
 ## What is **not** in this spec
 
 - Edición, archivado o eliminación de niños.
-- Conexión del perfil `/kids/[id]` a la DB (detalle, padres).
-- Tabla `parent_children` y padres vinculados.
+- Padres vinculados reales (tabla `parent_children`); "Vincular otro padre" sigue en memoria.
 - Feed `/` con datos reales.
 - Búsqueda funcional del grid.
 - Normalización de alergias a una tabla `allergies`.

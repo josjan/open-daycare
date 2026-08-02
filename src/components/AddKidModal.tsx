@@ -1,38 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Kid, avatarPalette, kids } from "@/data/mock";
-import { slugify } from "@/lib/slugify";
+import { Room, NewChildForm } from "@/types/child";
+import { toEnglishTag } from "@/lib/allergyTags";
 
 interface AddKidModalProps {
-  rooms: string[];
+  rooms: Room[];
   onClose: () => void;
-  onSave: (kid: Kid) => void;
-}
-
-const shortMonths = [
-  "ene",
-  "feb",
-  "mar",
-  "abr",
-  "may",
-  "jun",
-  "jul",
-  "ago",
-  "sep",
-  "oct",
-  "nov",
-  "dic",
-];
-
-function formatDateMask(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  let masked = "";
-  for (let i = 0; i < digits.length; i++) {
-    if (i === 2 || i === 4) masked += "/";
-    masked += digits[i];
-  }
-  return masked;
+  onSave: (form: NewChildForm) => Promise<boolean>;
 }
 
 function daysInMonth(month: number, year: number): number {
@@ -46,6 +21,16 @@ function isValidDate(day: number, month: number, year: number): boolean {
   if (month < 1 || month > 12) return false;
   if (day < 1 || day > daysInMonth(month, year)) return false;
   return year >= 1900 && year <= 2100;
+}
+
+function formatDateMask(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  let masked = "";
+  for (let i = 0; i < digits.length; i++) {
+    if (i === 2 || i === 4) masked += "/";
+    masked += digits[i];
+  }
+  return masked;
 }
 
 function ChevronDownIcon() {
@@ -68,9 +53,11 @@ function ChevronDownIcon() {
 export default function AddKidModal({ rooms, onClose, onSave }: AddKidModalProps) {
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [room, setRoom] = useState("");
+  const [roomId, setRoomId] = useState("");
   const [allergies, setAllergies] = useState("");
   const [medicalNotes, setMedicalNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -83,32 +70,34 @@ export default function AddKidModal({ rooms, onClose, onSave }: AddKidModalProps
   const dateComplete = birthDate.length === 10;
   const [day, month, year] = birthDate.split("/").map(Number);
   const dateValid = dateComplete && isValidDate(day, month, year);
-  const canSave = name.trim().length > 0 && dateValid && room.length > 0;
+  const canSave = name.trim().length > 0 && dateValid && roomId.length > 0;
 
-  function handleSave() {
-    if (!canSave) return;
-    const trimmedName = name.trim();
-    const today = new Date();
-    let age = today.getFullYear() - year;
-    const birthdayThisYear = new Date(today.getFullYear(), month - 1, day);
-    if (today < birthdayThisYear) age -= 1;
+  async function handleSave() {
+    if (!canSave || saving) return;
 
-    const avatar = avatarPalette[kids.length % avatarPalette.length];
+    const allergyTags = allergies
+      .split(",")
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0)
+      .map(toEnglishTag);
 
-    onSave({
-      id: slugify(trimmedName),
-      name: trimmedName,
-      initial: trimmedName.charAt(0).toUpperCase(),
-      avatarBg: avatar.bg,
-      avatarText: avatar.text,
-      age,
-      room,
-      birthDate: `${day} ${shortMonths[month - 1]} ${year}`,
-      enrolledSince: `${shortMonths[today.getMonth()]} ${today.getFullYear()}`,
-      allergyLabel: allergies.trim() ? allergies.trim().toUpperCase() : undefined,
-      allergies: medicalNotes.trim() ? medicalNotes.trim() : undefined,
-      parents: [],
+    setSaving(true);
+    setError(null);
+
+    const saved = await onSave({
+      name: name.trim(),
+      birthDateISO: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      roomId,
+      allergyTags,
+      medicalNotes: medicalNotes.trim(),
     });
+
+    if (saved) {
+      onClose();
+    } else {
+      setSaving(false);
+      setError("No se pudo guardar el niño. Intentá de nuevo.");
+    }
   }
 
   return (
@@ -138,10 +127,10 @@ export default function AddKidModal({ rooms, onClose, onSave }: AddKidModalProps
           <button
             type="button"
             onClick={handleSave}
-            disabled={!canSave}
+            disabled={!canSave || saving}
             className="text-[15px] font-extrabold text-[#D9583C] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Guardar
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </div>
 
@@ -180,16 +169,16 @@ export default function AddKidModal({ rooms, onClose, onSave }: AddKidModalProps
               </div>
               <div className="relative">
                 <select
-                  value={room}
-                  onChange={(event) => setRoom(event.target.value)}
+                  value={roomId}
+                  onChange={(event) => setRoomId(event.target.value)}
                   className="w-full appearance-none rounded-[14px] border-[1.5px] border-[#EADFD0] bg-white px-4 py-[13px] pr-10 text-[15px] font-bold text-[#3F362E] outline-none"
                 >
                   <option value="" disabled>
                     Seleccionar sala
                   </option>
-                  {rooms.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
                     </option>
                   ))}
                 </select>
@@ -219,6 +208,12 @@ export default function AddKidModal({ rooms, onClose, onSave }: AddKidModalProps
             placeholder="Indicaciones, medicación, contactos…"
             className="w-full min-h-[90px] resize-y rounded-[14px] border-[1.5px] border-[#EADFD0] bg-white px-4 py-[13px] text-[15px] text-[#3F362E] placeholder-[#B6A99B] outline-none"
           />
+
+          {error && (
+            <div className="mt-[14px] rounded-[12px] border-[1.5px] border-[#F2A78E] bg-[#FDEBE3] px-4 py-3 text-[13.5px] font-semibold text-[#C5503A]">
+              {error}
+            </div>
+          )}
         </div>
       </div>
     </div>
