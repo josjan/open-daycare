@@ -1,25 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Kid, Parent, avatarPalette, parentRoles } from "@/data/mock";
-import { slugify } from "@/lib/slugify";
+import { Kid } from "@/data/mock";
+import { relationshipToDb } from "@/lib/relationship";
 
 interface LinkParentModalProps {
   kid: Kid;
   onClose: () => void;
-  onInvite: (parent: Parent) => void;
+  onInvited: () => void;
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function generateInviteCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 5; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
 
 function CloseIcon() {
   return (
@@ -75,11 +66,13 @@ function SendIcon() {
   );
 }
 
-export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentModalProps) {
+export default function LinkParentModal({ kid, onClose, onInvited }: LinkParentModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("Mamá");
-  const [inviteCode] = useState(generateInviteCode);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -91,21 +84,39 @@ export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentMo
 
   const nameValid = name.trim().length > 0;
   const emailValid = emailRegex.test(email.trim());
-  const canInvite = nameValid && emailValid && role.length > 0;
+  const canInvite = nameValid && emailValid && role.length > 0 && !loading && !inviteCode;
 
-  function handleInvite() {
+  async function handleInvite() {
     if (!canInvite) return;
-    const trimmedName = name.trim();
-    const avatar = avatarPalette[kid.parents.length % avatarPalette.length];
+    setLoading(true);
+    setError(null);
 
-    onInvite({
-      id: slugify(trimmedName),
-      name: trimmedName,
-      initial: trimmedName.charAt(0).toUpperCase(),
-      avatarBg: avatar.bg,
-      role,
-      status: "pending",
-    });
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          child_id: kid.id,
+          full_name: name.trim(),
+          email: email.trim(),
+          relationship: relationshipToDb[role],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "No se pudo enviar la invitación.");
+        return;
+      }
+
+      setInviteCode(data.code);
+      onInvited();
+    } catch {
+      setError("No se pudo enviar la invitación. Intentá de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -185,7 +196,7 @@ export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentMo
             PARENTESCO
           </div>
           <div className="mb-5 flex gap-[9px]">
-            {parentRoles.map((option) => {
+            {(["Mamá", "Papá", "Tutor/a"] as const).map((option) => {
               const selected = option === role;
               return (
                 <button
@@ -210,10 +221,16 @@ export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentMo
               CÓDIGO DE INVITACIÓN
             </div>
             <div className="font-fredoka text-[34px] font-semibold tracking-[7px] text-[#8A7234]">
-              {inviteCode}
+              {inviteCode ?? "—"}
             </div>
             <div className="mt-[6px] text-[13px] text-[#A88526]">Vence en 7 días</div>
           </div>
+
+          {error && (
+            <div className="mb-5 rounded-[14px] bg-[#FDEBE3] px-4 py-3 text-[13.5px] font-semibold text-[#C5503A]">
+              {error}
+            </div>
+          )}
 
           <button
             type="button"
@@ -222,7 +239,7 @@ export default function LinkParentModal({ kid, onClose, onInvite }: LinkParentMo
             className="flex w-full items-center justify-center gap-[9px] rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-4 py-[14px] text-[15.5px] font-extrabold text-white shadow-[0_10px_22px_-8px_rgba(238,129,100,.7)] disabled:cursor-not-allowed disabled:opacity-40"
           >
             <SendIcon />
-            Enviar invitación
+            {loading ? "Enviando…" : inviteCode ? "Invitación enviada" : "Enviar invitación"}
           </button>
         </div>
       </div>

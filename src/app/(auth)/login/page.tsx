@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 function SunIcon() {
@@ -14,13 +14,24 @@ function SunIcon() {
   );
 }
 
-export default function LoginPage() {
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const activated = searchParams.get("activated") === "1";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,6 +91,17 @@ export default function LoginPage() {
             Ingresá para ver el día de hoy.
           </p>
 
+          {activated && (
+            <div className="mb-[18px] flex items-start gap-[10px] rounded-[14px] border-[1.5px] border-[#BFE3CC] bg-[#E4F4E9] px-4 py-3">
+              <span className="mt-[1px] flex h-5 w-5 flex-none items-center justify-center rounded-full bg-[#5FB97E]">
+                <CheckIcon />
+              </span>
+              <span className="text-[13.5px] font-semibold leading-[1.45] text-[#3E8B62]">
+                Tu cuenta fue activada. Ingresá con tu contraseña.
+              </span>
+            </div>
+          )}
+
           <div className="mb-[8px] text-[12px] font-bold tracking-[.7px] text-[#94887B]">EMAIL</div>
           <input
             type="email"
@@ -126,5 +148,19 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#FBF4EC]">
+          <div className="text-[15px] font-semibold text-[#94887B]">Cargando…</div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

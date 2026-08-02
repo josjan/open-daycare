@@ -1,17 +1,59 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import KidProfile from "@/components/KidProfile";
 import LinkParentModal from "@/components/LinkParentModal";
-import { Kid, Parent } from "@/data/mock";
+import { Kid, Parent, avatarPalette } from "@/data/mock";
 import { ChildRow } from "@/types/child";
+import { InvitationRow, ParentLinkRow } from "@/types/invitation";
+import { relationshipLabels } from "@/lib/relationship";
 import { childToKid } from "@/lib/childMappers";
 import { createClient } from "@/utils/supabase/client";
 
 interface KidPageProps {
   params: Promise<{ id: string }>;
+}
+
+function parentFromLink(link: ParentLinkRow): Parent | null {
+  const name = link.users?.full_name ?? "";
+  if (!name) return null;
+  return {
+    id: link.parent_id,
+    name,
+    initial: name.charAt(0).toUpperCase(),
+    avatarBg: "",
+    role: relationshipLabels[link.relationship],
+    status: "active",
+  };
+}
+
+function parentFromInvitation(invitation: InvitationRow): Parent {
+  const name = invitation.full_name;
+  return {
+    id: invitation.code,
+    name,
+    initial: name.charAt(0).toUpperCase(),
+    avatarBg: "",
+    role: relationshipLabels[invitation.relationship],
+    status: "pending",
+  };
+}
+
+function buildParents(
+  links: ParentLinkRow[],
+  invitations: InvitationRow[]
+): Parent[] {
+  const active = links
+    .map(parentFromLink)
+    .filter((parent): parent is Parent => parent !== null);
+  const pending = invitations.map(parentFromInvitation);
+
+  return [...active, ...pending].map((parent, index) => ({
+    ...parent,
+    avatarBg: avatarPalette[index % avatarPalette.length].bg,
+  }));
 }
 
 export default function KidPage({ params }: KidPageProps) {
@@ -21,6 +63,35 @@ export default function KidPage({ params }: KidPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isNotFound, setIsNotFound] = useState(false);
   const [isLinkParentOpen, setIsLinkParentOpen] = useState(false);
+
+  const loadParents = useCallback(
+    async (supabase: ReturnType<typeof createClient>, child: Kid) => {
+      const [linksResult, invitationsResult] = await Promise.all([
+        supabase
+          .from("parent_children")
+          .select("parent_id, child_id, relationship, users(full_name)")
+          .eq("child_id", id),
+        supabase
+          .from("invitations")
+          .select("*")
+          .eq("child_id", id)
+          .eq("status", "pending"),
+      ]);
+
+      if (linksResult.error || invitationsResult.error) {
+        setError("No se pudieron cargar los padres vinculados.");
+        return child;
+      }
+
+      const parents = buildParents(
+        (linksResult.data ?? []) as unknown as ParentLinkRow[],
+        (invitationsResult.data ?? []) as InvitationRow[]
+      );
+
+      return { ...child, parents };
+    },
+    [id]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -44,25 +115,29 @@ export default function KidPage({ params }: KidPageProps) {
         setIsNotFound(true);
         return;
       }
-      setKidState(childToKid(data as ChildRow, 0));
+
+      const kid = childToKid(data as ChildRow, 0);
+      const kidWithParents = await loadParents(supabase, kid);
+      if (cancelled) return;
+      setKidState(kidWithParents);
     }
 
     loadKid();
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, loadParents]);
 
   if (isNotFound) {
     notFound();
   }
 
-  function handleInvite(parent: Parent) {
-    setKidState((prev) => {
-      if (!prev) return prev;
-      return { ...prev, parents: [...prev.parents, parent] };
-    });
-    setIsLinkParentOpen(false);
+  async function handleInvited() {
+    const supabase = createClient();
+    if (kidState) {
+      const refreshed = await loadParents(supabase, kidState);
+      setKidState(refreshed);
+    }
   }
 
   if (loading) {
@@ -100,7 +175,7 @@ export default function KidPage({ params }: KidPageProps) {
           <LinkParentModal
             kid={kidState}
             onClose={() => setIsLinkParentOpen(false)}
-            onInvite={handleInvite}
+            onInvited={handleInvited}
           />
         )}
       </main>
