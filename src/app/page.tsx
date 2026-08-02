@@ -5,6 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import CreatePostPrompt from "@/components/CreatePostPrompt";
 import CreatePostModal from "@/components/CreatePostModal";
 import Post from "@/components/Post";
+import PokemonExplorer from "@/components/PokemonExplorer";
+
 import { type Post as PostData, kids, pageInfo, posts } from "@/data/mock";
 
 export default function Home() {
@@ -32,6 +34,10 @@ export default function Home() {
               {pageInfo.childCount} niños · {pageInfo.date}
             </p>
           </div>
+
+          
+
+          <PokemonExplorer />
 
           <CreatePostPrompt onOpen={() => setIsModalOpen(true)} />
 
