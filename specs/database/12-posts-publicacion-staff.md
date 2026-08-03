@@ -415,7 +415,8 @@ export interface NewPost {
 //  - niño → childName/initial/avatarBg del primer post_children.children
 //    (avatarBg desde avatarPalette por índice), audience "familia de {nombre}".
 //  - time → published_at local HH:MM.
-//  - image → { label: "Foto", src: url } del post_photos[0] (orden por position).
+//  - image → { label: "Foto", src: url } del post_photos[0] (orden por position);
+//    sin fotos → { label: "Foto" } sin src (el feed muestra el placeholder).
 //  - likes → reactions[0]?.count ?? 0; comments → comments[0]?.count ?? 0.
 ```
 
@@ -520,6 +521,7 @@ Convenciones:
 - **Sí:** Categoría del post = pill elegida (independiente de si hay fotos); `type` se mapea 1:1 con la categoría UI. Para "Toda la sala", `type` se fuerza a `announcement` (decisión del usuario, 2026-08-03: la criterion de aceptación manda sobre la pill).
 - **Sí:** Postgres policies con reacciones/comentarios para INSERT `authenticated` (solo autoral), sin UI de reaccionar/comentar aún.
 - **Sí:** Índice `comments_author_id_idx` añadido (migración `add_comments_author_id_index`): el advisor reportó `comments_author_id_fkey` sin índice, y el scope exige índices en todas las columnas FK.
+- **Sí:** Un post sin `post_photos` se mapea con `image = { label: "Foto" }` sin src, por lo que el feed muestra el placeholder (caja punteada). Decisión del usuario, 2026-08-03 (criterio de aceptación "muestra el placeholder" manda).
 - **Sí:** Migración `add_parent_identities`: los 9 usuarios padres sembrados necesitan su fila en `auth.identities` para poder iniciar sesión (el password login devolvía 500 sin ella, igual que `fix_seed_auth_user_login` para José). Verificado con `lucia@gmail.com`.
 - **Sí:** Migración `fix_parent_users_tokens`: además de la identity, los padres sembrados necesitan los tokens de `auth.users` en `''` (no NULL) como en `fix_seed_auth_user_login`; el password login devolvía 500 si quedaban NULL. Verificado con `lucia@gmail.com`.
 - **No:** Multi-selección de niños, carrusel de fotos, edición/borrado de posts en UI, filtrado del feed por rol de padre, detalle de publicación.

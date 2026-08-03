@@ -49,8 +49,8 @@ function paletteIndex(key: string): number {
   return hash % avatarPalette.length;
 }
 
-function firstPhoto(photos: PostRow["post_photos"]): PostImage | undefined {
-  if (!photos || photos.length === 0) return undefined;
+function firstPhoto(photos: PostRow["post_photos"]): PostImage {
+  if (!photos || photos.length === 0) return { label: "Foto" };
   const sorted = [...photos].sort((a, b) => a.position - b.position);
   return { label: "Foto", src: sorted[0].url };
 }
