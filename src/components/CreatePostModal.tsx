@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import {
   type Kid,
-  type Post,
   type PostCategory,
   categoryStyles,
 } from "@/data/mock";
+import { categoryToPostType } from "@/lib/postMappers";
+import { createClient } from "@/utils/supabase/client";
 
 const CATEGORIES: PostCategory[] = [
   "food",
@@ -18,13 +19,19 @@ const CATEGORIES: PostCategory[] = [
   "announcement",
 ];
 
-const INITIAL_DESCRIPTION =
-  "Pintamos con témperas esta mañana. Mateo eligió el azul para todo y se concentró un montón.";
+const INITIAL_DESCRIPTION = "";
+
+interface PhotoDraft {
+  file: File;
+  url: string;
+}
 
 interface CreatePostModalProps {
   kids: Kid[];
+  authorId: string;
+  staffRoomId: string | null;
   onClose: () => void;
-  onPublish: (post: Post) => void;
+  onPublished: () => void;
 }
 
 function PlusIcon() {
@@ -37,15 +44,19 @@ function PlusIcon() {
 
 export default function CreatePostModal({
   kids,
+  authorId,
+  staffRoomId,
   onClose,
-  onPublish,
+  onPublished,
 }: CreatePostModalProps) {
   const [audienceId, setAudienceId] = useState(kids[0]?.id ?? "all");
   const [category, setCategory] = useState<PostCategory>("food");
   const [description, setDescription] = useState(INITIAL_DESCRIPTION);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const photosRef = useRef<string[]>([]);
+  const photosRef = useRef<PhotoDraft[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -58,60 +69,108 @@ export default function CreatePostModal({
   }, [onClose]);
 
   useEffect(() => {
-    return () => photosRef.current.forEach((url) => URL.revokeObjectURL(url));
+    return () => photosRef.current.forEach((photo) => URL.revokeObjectURL(photo.url));
   }, []);
 
   const addFiles = (files: File[]) => {
     const images = files.filter((file) => file.type.startsWith("image/"));
     const remaining = 4 - photos.length;
     if (remaining <= 0) return;
-    const urls = images
-      .slice(0, remaining)
-      .map((file) => URL.createObjectURL(file));
-    const next = [...photos, ...urls];
+    const next: PhotoDraft[] = [
+      ...photos,
+      ...images.slice(0, remaining).map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    ];
     setPhotos(next);
     photosRef.current = next;
   };
 
   const removePhoto = (index: number) => {
-    URL.revokeObjectURL(photos[index]);
+    URL.revokeObjectURL(photos[index].url);
     const next = photos.filter((_, i) => i !== index);
     setPhotos(next);
     photosRef.current = next;
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     const content = description.trim();
-    if (!content) return;
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, "0")}:${String(
-      now.getMinutes(),
-    ).padStart(2, "0")}`;
-    const kid = kids.find((k) => k.id === audienceId);
-    const firstName = kid ? kid.name.split(" ")[0] : null;
-    const image =
-      photos.length > 0 ? { label: "foto", src: photos[0] } : undefined;
+    if (!content || isPublishing) return;
 
-    if (image) {
-      photosRef.current = photosRef.current.filter((url) => url !== image.src);
+    setIsPublishing(true);
+    setError(null);
+    const supabase = createClient();
+    const isAnnouncement = audienceId === "all";
+    const type = isAnnouncement ? "announcement" : categoryToPostType(category);
+
+    const { data: post, error: postError } = await supabase
+      .from("posts")
+      .insert({
+        author_id: authorId,
+        room_id: isAnnouncement ? staffRoomId : null,
+        type,
+        title: isAnnouncement ? "Anuncio general" : null,
+        body: content,
+        published_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+
+    if (postError || !post) {
+      setError("No se pudo publicar el post. Intentalo de nuevo.");
+      setIsPublishing(false);
+      return;
     }
 
-    onPublish({
-      id: crypto.randomUUID(),
-      childName: firstName ?? "Anuncio general",
-      childInitial: kid?.initial ?? "",
-      childAvatarBg: kid?.avatarBg ?? "#CCD8F4",
-      category,
-      time,
-      audience: firstName ? `familia de ${firstName}` : "toda la sala",
-      content,
-      image,
-      likes: 0,
-      comments: 0,
-    });
+    if (photos.length > 0) {
+      const photoRows = [];
+      for (let i = 0; i < photos.length; i += 1) {
+        const photo = photos[i];
+        const path = `${post.id}/${i}-${photo.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("post-photos")
+          .upload(path, photo.file, { upsert: false });
+        if (uploadError) {
+          setError("No se pudo subir una de las fotos.");
+          setIsPublishing(false);
+          return;
+        }
+        const { data: urlData } = supabase.storage
+          .from("post-photos")
+          .getPublicUrl(path);
+        photoRows.push({
+          post_id: post.id,
+          url: urlData.publicUrl,
+          position: i,
+        });
+      }
+      const { error: photosError } = await supabase
+        .from("post_photos")
+        .insert(photoRows);
+      if (photosError) {
+        setError("No se pudo guardar las fotos.");
+        setIsPublishing(false);
+        return;
+      }
+    }
+
+    if (!isAnnouncement) {
+      const { error: childError } = await supabase
+        .from("post_children")
+        .insert({ post_id: post.id, child_id: audienceId });
+      if (childError) {
+        setError("No se pudo asociar el post al niño.");
+        setIsPublishing(false);
+        return;
+      }
+    }
+
+    photosRef.current.forEach((photo) => URL.revokeObjectURL(photo.url));
+    onPublished();
   };
 
-  const canPublish = description.trim().length > 0;
+  const canPublish = description.trim().length > 0 && !isPublishing;
 
   return (
       <div
@@ -142,7 +201,7 @@ export default function CreatePostModal({
             disabled={!canPublish}
             className="text-[15px] font-extrabold text-[#D9583C] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Publicar
+            {isPublishing ? "Publicando…" : "Publicar"}
           </button>
         </div>
 
@@ -261,12 +320,12 @@ export default function CreatePostModal({
                 event.target.value = "";
               }}
             />
-            {photos.map((url, index) => (
+            {photos.map((photo, index) => (
               <div
-                key={url}
+                key={photo.url}
                 className="relative h-24 w-24 flex-none overflow-hidden rounded-[14px] border border-[#ECE0D0]"
               >
-                <img src={url} alt={`foto ${index + 1}`} className="h-full w-full object-cover" />
+                <img src={photo.url} alt={`foto ${index + 1}`} className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removePhoto(index)}
@@ -288,6 +347,15 @@ export default function CreatePostModal({
               </button>
             )}
           </div>
+
+          {error && (
+            <div
+              role="alert"
+              className="mt-5 rounded-[12px] border-[1.5px] border-[#F2A78E] bg-[#FDEBE3] px-4 py-3 text-[13.5px] font-semibold text-[#C5503A]"
+            >
+              {error}
+            </div>
+          )}
         </div>
       </div>
     </div>

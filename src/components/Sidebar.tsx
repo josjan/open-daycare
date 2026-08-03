@@ -143,13 +143,15 @@ function SidebarContent({
         </div>
       </Link>
 
-      <button
-        onClick={onCreatePost}
-        className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]"
-      >
-        <PlusIcon />
-        Nueva publicación
-      </button>
+      {onCreatePost && (
+        <button
+          onClick={onCreatePost}
+          className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]"
+        >
+          <PlusIcon />
+          Nueva publicación
+        </button>
+      )}
 
       <nav className="flex flex-1 flex-col gap-1">
         {navItems.map((item) => {
