@@ -3,9 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { navItems, pageInfo, NavItemId } from "@/data/mock";
+import {
+  staffNavItems,
+  familyNavItems,
+  pageInfo,
+  NavItemId,
+  NavItem,
+} from "@/data/mock";
 import { createClient } from "@/utils/supabase/client";
 import { type UserProfile } from "@/types/profile";
+import { relationshipLabels } from "@/lib/relationship";
+
+export type SidebarVariant = "staff" | "family";
 
 function SunIcon() {
   return (
@@ -64,11 +73,18 @@ function CloseIcon() {
   );
 }
 
-const NAV_HREFS: Record<NavItemId, string> = {
+const STAFF_NAV_HREFS: Record<NavItemId, string> = {
   feed: "/",
   kids: "/kids",
-  notices: "#",
-  account: "#",
+  notices: "/avisos",
+  account: "/cuenta",
+};
+
+const FAMILY_NAV_HREFS: Record<NavItemId, string> = {
+  feed: "/familia",
+  kids: "/kids",
+  notices: "/avisos",
+  account: "/familia/cuenta",
 };
 
 const ROLE_LABELS: Record<UserProfile["role"], string> = {
@@ -77,35 +93,96 @@ const ROLE_LABELS: Record<UserProfile["role"], string> = {
   admin: "Admin",
 };
 
+interface SidebarProfile {
+  fullName: string;
+  role: UserProfile["role"];
+  scopeLabel: string;
+  footerLabel: string;
+}
+
 function SidebarContent({
+  variant,
   activeNav,
   onCreatePost,
 }: {
+  variant: SidebarVariant;
   activeNav: NavItemId;
   onCreatePost?: () => void;
 }) {
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<SidebarProfile | null>(null);
+
+  const isStaff = variant === "staff";
+  const navItems: NavItem[] = isStaff ? staffNavItems : familyNavItems;
+  const navHrefs = isStaff ? STAFF_NAV_HREFS : FAMILY_NAV_HREFS;
+  const homeHref = isStaff ? "/" : "/familia";
 
   useEffect(() => {
+    let ignore = false;
+
     const loadProfile = async () => {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (ignore || !user) return;
 
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("full_name, role")
-        .eq("id", user.id)
-        .single();
+      if (isStaff) {
+        const { data: userRow } = await supabase
+          .from("users")
+          .select("full_name, role, rooms(name)")
+          .eq("id", user.id)
+          .single();
+        if (ignore) return;
 
-      if (userRow) {
+        if (userRow) {
+          const roomName = (userRow.rooms as { name?: string } | null)?.name ?? "";
+          setProfile({
+            fullName: userRow.full_name,
+            role: userRow.role as UserProfile["role"],
+            scopeLabel: roomName ? `Sala ${roomName}` : "",
+            footerLabel: `${ROLE_LABELS[userRow.role as UserProfile["role"]]}${
+              roomName ? ` · ${roomName}` : ""
+            }`,
+          });
+          return;
+        }
+      } else {
+        const { data: userRow } = await supabase
+          .from("users")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+        if (ignore) return;
+
+        const fullName =
+          userRow?.full_name ??
+          (user.user_metadata?.full_name as string) ??
+          user.email ??
+          "Usuario";
+
+        const { data: links } = await supabase
+          .from("parent_children")
+          .select("relationship, children(full_name)")
+          .eq("parent_id", user.id)
+          .limit(1);
+        if (ignore) return;
+
+        const link = links?.[0] as
+          | { relationship: keyof typeof relationshipLabels; children: { full_name: string } | null }
+          | undefined;
+        const relationship = link?.relationship
+          ? relationshipLabels[link.relationship]
+          : "";
+        const childName = link?.children?.full_name?.split(" ")[0] ?? "";
+        const parentesco =
+          relationship && childName ? `${relationship} de ${childName}` : "";
+
         setProfile({
-          fullName: userRow.full_name,
-          role: userRow.role,
-          initial: userRow.full_name.charAt(0).toUpperCase(),
+          fullName,
+          role: "parent",
+          scopeLabel: "Familia",
+          footerLabel: parentesco,
         });
         return;
       }
@@ -116,11 +193,16 @@ function SidebarContent({
       setProfile({
         fullName,
         role,
-        initial: fullName.charAt(0).toUpperCase(),
+        scopeLabel: isStaff ? "" : "Familia",
+        footerLabel: isStaff ? ROLE_LABELS[role] : "",
       });
     };
+
     loadProfile();
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [isStaff]);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -131,7 +213,7 @@ function SidebarContent({
 
   return (
     <>
-      <Link href="/" className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
+      <Link href={homeHref} className="flex items-center gap-[11px] px-2 pb-[22px] pt-1">
         <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-xl bg-gradient-to-br from-[#F8C3A8] to-[#F2937A]">
           <SunIcon />
         </div>
@@ -139,11 +221,17 @@ function SidebarContent({
           <div className="font-fredoka text-[17px] font-semibold leading-none text-[#3F362E]">
             OpenDayCare
           </div>
-          <div className="mt-[2px] text-[11.5px] text-[#A89A8B]">{pageInfo.roomName}</div>
+          <div className="mt-[2px] text-[11.5px] text-[#A89A8B]">
+            {profile
+              ? profile.scopeLabel || (isStaff ? pageInfo.roomName : "Familia")
+              : isStaff
+                ? pageInfo.roomName
+                : "Familia"}
+          </div>
         </div>
       </Link>
 
-      {onCreatePost && (
+      {isStaff && onCreatePost && (
         <button
           onClick={onCreatePost}
           className="mb-[18px] flex w-full items-center justify-center gap-2 rounded-[14px] bg-gradient-to-b from-[#F4977E] to-[#EE8164] px-3 py-3 text-[14.5px] font-extrabold text-white shadow-[0_8px_18px_-8px_rgba(238,129,100,.75)]"
@@ -159,7 +247,7 @@ function SidebarContent({
           return (
             <Link
               key={item.id}
-              href={NAV_HREFS[item.id]}
+              href={navHrefs[item.id]}
               className={`flex items-center gap-3 rounded-xl px-3 py-[11px] text-[14.5px] ${
                 active
                   ? "bg-[#FBE3D8] font-extrabold text-[#D9583C]"
@@ -176,14 +264,14 @@ function SidebarContent({
       <div className="mt-[10px] border-t border-[#ECE0D0] pt-[14px]">
         <div className="flex items-center gap-[11px] px-2 py-[6px]">
           <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full bg-[#F2937A] font-fredoka font-semibold text-white" style={{ fontSize: 16 }}>
-            {profile?.initial ?? "·"}
+            {profile?.fullName.charAt(0).toUpperCase() ?? "·"}
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-extrabold text-[#3F362E]">
               {profile?.fullName ?? "Cargando…"}
             </div>
             <div className="text-xs text-[#A89A8B]">
-              {profile ? ROLE_LABELS[profile.role] : ""}
+              {profile?.footerLabel ?? ""}
             </div>
           </div>
           <button
@@ -200,11 +288,12 @@ function SidebarContent({
 }
 
 interface SidebarProps {
+  variant: SidebarVariant;
   activeNav: NavItemId;
   onCreatePost?: () => void;
 }
 
-export default function Sidebar({ activeNav, onCreatePost }: SidebarProps) {
+export default function Sidebar({ variant, activeNav, onCreatePost }: SidebarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -236,7 +325,7 @@ export default function Sidebar({ activeNav, onCreatePost }: SidebarProps) {
         >
           <CloseIcon />
         </button>
-        <SidebarContent activeNav={activeNav} onCreatePost={onCreatePost} />
+        <SidebarContent variant={variant} activeNav={activeNav} onCreatePost={onCreatePost} />
       </aside>
     </>
   );

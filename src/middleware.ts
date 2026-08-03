@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/middleware";
+import { getPanelForPath, resolveRole } from "@/lib/role";
 
 const PUBLIC_PATHS = ["/login", "/activate"];
 
@@ -18,6 +19,19 @@ export async function middleware(request: NextRequest) {
 
   if (user && isPublicPath) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (user) {
+    const role = await resolveRole(supabase, user);
+    const panel = getPanelForPath(pathname);
+
+    if (role === "parent" && panel === "staff") {
+      return NextResponse.redirect(new URL("/familia", request.url));
+    }
+
+    if ((role === "staff" || role === "admin") && panel === "family") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   return response;
