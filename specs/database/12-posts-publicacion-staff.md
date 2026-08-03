@@ -112,6 +112,7 @@ create table public.comments (
 );
 
 create index comments_post_id_idx on public.comments (post_id);
+create index comments_author_id_idx on public.comments (author_id);
 
 alter table public.posts enable row level security;
 alter table public.post_children enable row level security;
@@ -480,7 +481,7 @@ Convenciones:
 - [ ] `list_migrations` incluye las migraciones `create_posts_tables`, `add_users_room_id`, `seed_children_and_posts` y `create_post_photos_bucket` aplicadas.
 - [ ] `public.post_type` existe con exactamente `meal`, `nap`, `activity`, `achievement`, `photo`, `announcement`, `mood`.
 - [ ] Existen las tablas `posts`, `post_children`, `post_photos`, `reactions`, `comments` con las columnas del data model y RLS habilitado.
-- [ ] Existen los índices `posts_author_id_idx`, `posts_room_id_idx`, `post_children_post_id_idx`, `post_children_child_id_idx`, `post_photos_post_id_idx`, `reactions_post_id_idx`, `reactions_user_id_idx`, `comments_post_id_idx`, `users_room_id_idx`.
+- [ ] Existen los índices `posts_author_id_idx`, `posts_room_id_idx`, `post_children_post_id_idx`, `post_children_child_id_idx`, `post_photos_post_id_idx`, `reactions_post_id_idx`, `reactions_user_id_idx`, `comments_post_id_idx`, `comments_author_id_idx`, `users_room_id_idx`.
 - [ ] `users.room_id` existe (FK → `rooms`, nullable) y `José` (staff) tiene la sala `Soles`.
 - [ ] `SELECT count(*) FROM public.children` = 8, todos en la sala `Soles`.
 - [ ] `SELECT count(*) FROM public.users WHERE role = 'parent'` = 9 (Lucía, Diego, Ana, María, Carlos, Paula, Laura, Roberto, Claudia), con email confirmado en `auth.users`.
@@ -518,6 +519,7 @@ Convenciones:
 - **Sí:** RLS — SELECT de `posts`/`post_children`/`post_photos` para cualquier `authenticated` del daycare; INSERT/UPDATE/DELETE solo staff vía `private.is_staff()` y `private.current_daycare_id()` (helpers ya existentes).
 - **Sí:** Categoría del post = pill elegida (independiente de si hay fotos); `type` se mapea 1:1 con la categoría UI.
 - **Sí:** Postgres policies con reacciones/comentarios para INSERT `authenticated` (solo autoral), sin UI de reaccionar/comentar aún.
+- **Sí:** Índice `comments_author_id_idx` añadido (migración `add_comments_author_id_index`): el advisor reportó `comments_author_id_fkey` sin índice, y el scope exige índices en todas las columnas FK.
 - **No:** Multi-selección de niños, carrusel de fotos, edición/borrado de posts en UI, filtrado del feed por rol de padre, detalle de publicación.
 - **No:** signed URLs para fotos. Bucket público elegido.
 - **No:** Cambios al doc `docs`. El modelo §7–§11 se respeta; `room_id` en `users` es una adición al §2 sin contradicción.
