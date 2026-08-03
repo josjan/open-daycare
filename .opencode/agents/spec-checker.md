@@ -1,6 +1,7 @@
 ---
 description: Verifies the acceptance criteria of a spec — marks checkboxes, fixes code issues, and reports results.
 agent: spec-checker
+mode: subagent
 ---
 
 Verify the acceptance criteria of the spec `$ARGUMENTS`.
