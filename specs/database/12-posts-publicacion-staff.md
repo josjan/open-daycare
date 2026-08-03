@@ -454,6 +454,7 @@ const { data: post } = await supabase
 Convenciones:
 
 - Los posts de niño llevan `room_id = null`; los anuncios llevan `room_id` = sala del staff (`users.room_id`).
+- Si el destinatario es "Toda la sala", `type` se fuerza a `'announcement'` y `title` a `'Anuncio general'` (independiente de la pill elegida). Si es un niño, `type` = categoría elegida (pill) y `title` = `null`.
 - La categoría elegida en el modal (pill) define `type`, independiente de si hay fotos.
 - Se suben hasta 4 fotos (límite del modal, SPEC 06); el feed muestra solo la primera.
 - IDs de seed con `gen_random_uuid()`; referencias resueltas por `full_name`/`name` (regla del skill: no hardcodear IDs).
@@ -517,7 +518,7 @@ Convenciones:
 - **Sí:** Bucket `post-photos` público de lectura. Fotos con `photo_consent=true`; decisión del usuario (más simple que signed URLs).
 - **Sí:** Prompt y modal solo para `role='staff'` (ocultos para padres). Decisión del usuario.
 - **Sí:** RLS — SELECT de `posts`/`post_children`/`post_photos` para cualquier `authenticated` del daycare; INSERT/UPDATE/DELETE solo staff vía `private.is_staff()` y `private.current_daycare_id()` (helpers ya existentes).
-- **Sí:** Categoría del post = pill elegida (independiente de si hay fotos); `type` se mapea 1:1 con la categoría UI.
+- **Sí:** Categoría del post = pill elegida (independiente de si hay fotos); `type` se mapea 1:1 con la categoría UI. Para "Toda la sala", `type` se fuerza a `announcement` (decisión del usuario, 2026-08-03: la criterion de aceptación manda sobre la pill).
 - **Sí:** Postgres policies con reacciones/comentarios para INSERT `authenticated` (solo autoral), sin UI de reaccionar/comentar aún.
 - **Sí:** Índice `comments_author_id_idx` añadido (migración `add_comments_author_id_index`): el advisor reportó `comments_author_id_fkey` sin índice, y el scope exige índices en todas las columnas FK.
 - **No:** Multi-selección de niños, carrusel de fotos, edición/borrado de posts en UI, filtrado del feed por rol de padre, detalle de publicación.
