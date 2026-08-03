@@ -230,14 +230,14 @@ insert into public.children (room_id, full_name, birth_date, enrolled_at, medica
 select r.id, k.full_name, k.birth_date, k.enrolled_at, k.medical_notes, k.allergy_tags, true, 'active'
 from public.rooms r
 cross join (values
-  ('Mateo Fernández', '2022-03-12', '2025-02-01', 'Alergia al maní. Evitar frutos secos. Lleva inhalador en la mochila.', array['peanut']),
-  ('Sofía Méndez',    '2023-08-05', '2025-03-01', null, '{}'::text[]),
-  ('Benjamín Ruiz',   '2022-01-20', '2025-01-01', null, '{}'::text[]),
-  ('Valentina Soto',  '2023-11-14', '2025-04-01', null, '{}'::text[]),
-  ('Tomás Díaz',      '2022-02-08', '2025-02-01', 'Intolerancia a la lactosa. No leche ni derivados.', array['lactose']),
-  ('Emma Castro',     '2023-04-30', '2025-05-01', null, '{}'::text[]),
-  ('Lucas Romero',    '2022-06-17', '2025-03-01', null, '{}'::text[]),
-  ('Olivia Vega',     '2023-09-22', '2025-06-01', null, '{}'::text[])
+  ('Mateo Fernández', '2022-03-12'::date, '2025-02-01'::date, 'Alergia al maní. Evitar frutos secos. Lleva inhalador en la mochila.', array['peanut']),
+  ('Sofía Méndez',    '2023-08-05'::date, '2025-03-01'::date, null, '{}'::text[]),
+  ('Benjamín Ruiz',   '2022-01-20'::date, '2025-01-01'::date, null, '{}'::text[]),
+  ('Valentina Soto',  '2023-11-14'::date, '2025-04-01'::date, null, '{}'::text[]),
+  ('Tomás Díaz',      '2022-02-08'::date, '2025-02-01'::date, 'Intolerancia a la lactosa. No leche ni derivados.', array['lactose']),
+  ('Emma Castro',     '2023-04-30'::date, '2025-05-01'::date, null, '{}'::text[]),
+  ('Lucas Romero',    '2022-06-17'::date, '2025-03-01'::date, null, '{}'::text[]),
+  ('Olivia Vega',     '2023-09-22'::date, '2025-06-01'::date, null, '{}'::text[])
 ) as k (full_name, birth_date, enrolled_at, medical_notes, allergy_tags)
 where r.name = 'Soles';
 ```
@@ -334,7 +334,7 @@ from p
 join (values
   ('Lucía Fernández', '¡Hermoso!'),
   ('Ana Méndez',      '¡Qué artista!')
-) as c (full_name, body)
+) as c (full_name, body) on true
 join public.users u on u.full_name = c.full_name;
 
 -- post-3: anuncio general (8 · 0)
