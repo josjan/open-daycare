@@ -23,6 +23,7 @@ export default function Home() {
   const [kids, setKids] = useState<Kid[]>([]);
   const [authorId, setAuthorId] = useState<string | null>(null);
   const [staffRoomId, setStaffRoomId] = useState<string | null>(null);
+  const [isStaff, setIsStaff] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,6 +61,7 @@ export default function Home() {
         if (!ignore && profile) {
           setAuthorId(profile.id);
           setStaffRoomId(profile.room_id);
+          setIsStaff(profile.role === "staff");
         }
       }
 
@@ -87,7 +89,10 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-[#F6ECDF]">
-      <Sidebar activeNav="feed" onCreatePost={() => setIsModalOpen(true)} />
+      <Sidebar
+        activeNav="feed"
+        onCreatePost={isStaff ? () => setIsModalOpen(true) : undefined}
+      />
       <main className="h-screen min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[760px] px-10 pb-20 pt-[34px]">
           <div className="mb-6">
@@ -102,7 +107,7 @@ export default function Home() {
             </p>
           </div>
 
-          <CreatePostPrompt onOpen={() => setIsModalOpen(true)} />
+          {isStaff && <CreatePostPrompt onOpen={() => setIsModalOpen(true)} />}
 
           <div className="mb-[14px] flex items-center gap-[14px]">
             <span className="text-[12.5px] font-extrabold tracking-wide text-[#8A7C6D]">
@@ -147,7 +152,7 @@ export default function Home() {
         </div>
       </main>
 
-      {isModalOpen && authorId && (
+      {isModalOpen && isStaff && authorId && (
         <CreatePostModal
           kids={kids}
           authorId={authorId}

@@ -489,8 +489,7 @@ Convenciones:
 - [ ] Existen 3 posts de `José` (staff); por cada uno, `reactions`/`comments` dan los conteos `3·1`, `5·2`, `8·0`.
 - [ ] El bucket `post-photos` existe (público), con policies de lectura pública e insert solo staff.
 - [ ] `get_advisors` (security y performance) no reporta issues nuevos introducidos por estas migraciones.
-- [ ] Los 4 archivos `supabase/migrations/<version>_<nombre>.sql` existen y coinciden con las migraciones remotas.
-- [ ] `/` carga los posts de la DB: se ven los 3 posts del seed con badge, hora, audiencia (`familia de Mateo` / `toda la sala`) y conteos correctos; sin sesión redirige a `/login`.
+- [ ] Los 4 archivos `supabase/migrations/<version>_<nombre>.sql` existen y coinciden con las migraciones remotas.- [ ] `/` carga los posts de la DB: se ven los 3 posts del seed con badge, hora, audiencia (`familia de Mateo` / `toda la sala`) y conteos correctos; sin sesión redirige a `/login`.
 - [ ] El prompt "Compartí un momento…" se muestra con Jose (staff) y NO se muestra con un usuario padre.
 - [ ] El modal PARA lista los niños reales de la DB (8 del seed) + "Toda la sala".
 - [ ] Publicar un post de niño inserta 1 fila en `posts` (room_id null), 1 en `post_children` y aparece en el feed tras recargar.
@@ -521,6 +520,8 @@ Convenciones:
 - **Sí:** Categoría del post = pill elegida (independiente de si hay fotos); `type` se mapea 1:1 con la categoría UI. Para "Toda la sala", `type` se fuerza a `announcement` (decisión del usuario, 2026-08-03: la criterion de aceptación manda sobre la pill).
 - **Sí:** Postgres policies con reacciones/comentarios para INSERT `authenticated` (solo autoral), sin UI de reaccionar/comentar aún.
 - **Sí:** Índice `comments_author_id_idx` añadido (migración `add_comments_author_id_index`): el advisor reportó `comments_author_id_fkey` sin índice, y el scope exige índices en todas las columnas FK.
+- **Sí:** Migración `add_parent_identities`: los 9 usuarios padres sembrados necesitan su fila en `auth.identities` para poder iniciar sesión (el password login devolvía 500 sin ella, igual que `fix_seed_auth_user_login` para José). Verificado con `lucia@gmail.com`.
+- **Sí:** Migración `fix_parent_users_tokens`: además de la identity, los padres sembrados necesitan los tokens de `auth.users` en `''` (no NULL) como en `fix_seed_auth_user_login`; el password login devolvía 500 si quedaban NULL. Verificado con `lucia@gmail.com`.
 - **No:** Multi-selección de niños, carrusel de fotos, edición/borrado de posts en UI, filtrado del feed por rol de padre, detalle de publicación.
 - **No:** signed URLs para fotos. Bucket público elegido.
 - **No:** Cambios al doc `docs`. El modelo §7–§11 se respeta; `room_id` en `users` es una adición al §2 sin contradicción.
