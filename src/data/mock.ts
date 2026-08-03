@@ -50,6 +50,8 @@ export interface Post {
   image?: PostImage;
   likes: number;
   comments: number;
+  authorName?: string;
+  roomName?: string;
 }
 
 export interface PageInfo {
@@ -85,10 +87,15 @@ export const currentUser: User = {
   initial: "C",
 };
 
-export const navItems: NavItem[] = [
+export const staffNavItems: NavItem[] = [
   { id: "feed", label: "Feed", icon: "home", current: true },
   { id: "kids", label: "Niños", icon: "users" },
   { id: "notices", label: "Avisos", icon: "bell" },
+  { id: "account", label: "Mi cuenta", icon: "user" },
+];
+
+export const familyNavItems: NavItem[] = [
+  { id: "feed", label: "Feed", icon: "home", current: true },
   { id: "account", label: "Mi cuenta", icon: "user" },
 ];
 

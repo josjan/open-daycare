@@ -15,7 +15,15 @@ export interface PostRow {
   title: string | null;
   body: string;
   published_at: string;
-  post_children?: { child_id: string; children?: { full_name: string } | null }[];
+  users?: { full_name: string } | null;
+  rooms?: { name: string } | null;
+  post_children?: {
+    child_id: string;
+    children?: {
+      full_name: string;
+      rooms?: { name: string } | null;
+    } | null;
+  }[];
   post_photos?: { url: string; position: number }[];
   reactions?: { count: number }[];
   comments?: { count: number }[];

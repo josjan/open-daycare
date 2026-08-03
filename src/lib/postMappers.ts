@@ -72,6 +72,8 @@ export function postRowToPost(row: PostRow): Post {
       image: firstPhoto(row.post_photos),
       likes: row.reactions?.[0]?.count ?? 0,
       comments: row.comments?.[0]?.count ?? 0,
+      authorName: row.users?.full_name,
+      roomName: row.rooms?.name,
     };
   }
 
@@ -92,5 +94,7 @@ export function postRowToPost(row: PostRow): Post {
     image: firstPhoto(row.post_photos),
     likes: row.reactions?.[0]?.count ?? 0,
     comments: row.comments?.[0]?.count ?? 0,
+    authorName: row.users?.full_name,
+    roomName: row.rooms?.name ?? child?.rooms?.name,
   };
 }
